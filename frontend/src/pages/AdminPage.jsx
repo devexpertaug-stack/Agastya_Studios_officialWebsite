@@ -636,6 +636,7 @@ function ServicesTab() {
 }
 
 function SettingsTab() {
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 

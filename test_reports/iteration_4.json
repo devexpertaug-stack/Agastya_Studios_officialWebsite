@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration-4: verified both user-reported bug fixes plus all regressions. BUG FIX #1 (Admin About & Contact tab) — clicking [data-testid=admin-settings-tab] no longer throws ReferenceError; heading 'About & Contact' renders, founder photo preview visible, form values match spec (Full name='Agastya', Role='Founder & Creative Technologist — Agastya Studios', non-empty Bio, contact_email='devexpertaug@gmail.com', WhatsApp='+917906411716'), editing bio → clicking [data-testid=admin-save-settings] returned PUT /api/settings 200 with success toast 'Saved. Refresh the homepage to see it.'; original bio was restored. BUG FIX #2 (Cursor lag) — global `cursor: none` rule fully removed (grep of /app/frontend/src/ returns 0 matches for both 'cursor: none' and 'cursor-dot'); body computed cursor='auto', exactly ONE .cursor-ring element in DOM, ZERO .cursor-dot elements, ring transform updates on mousemove (from translate3d(101px,92px) → translate3d(627px,393px)), hovering a button toggles .cursor-ring-lg and computed width becomes 55.875px (≈56px spec), pointer-events on ring is 'none' so it doesn't block clicks. REGRESSIONS ALL PASS: (a) Projects tab shows 6 seeded cards + Add project button; Add opens modal titled 'New project' with 'Full story (project page) — optional' textarea; Cancel closes. (b) Services tab shows 10 admin-service-edit-{slug} buttons; opening admin-service-edit-voice reveals modal with title, blurb, cover image (file + URL), Features (one per line), Workflow, Web-dev layer note; Cancel closes. (c) Home has hero (Forests hold / the quiet intelligence.), services, pricing (Seed/Grove/Forest, no ₹), footer with 'Garhwal', 'Chat to Rishi' pill visible bottom-right. (d) /work/{uuid} loads with 'story' section. (e) /services/voice loads. (f) /login with wrong password stays on /login; correct creds redirect to /admin. (g) 0 console errors on /, /work/{id}, /services/voice, /login, /admin (single pre-login 401 on /api/auth/me is expected and not counted).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Cursor.jsx correctly hides via early-return on window.matchMedia('(pointer: coarse)').matches, and index.css also has @media (pointer: coarse) { .cursor-ring { display: none; } } as a CSS-level backup — double-guarded, good defense-in-depth.",
+    "RAF-lerp loop with 0.22 factor + refs (no setState in tick) is optimal — verified transform updates on mousemove with zero React re-renders and 0 console errors.",
+    "AdminPage SettingsTab now has the required useState(null) for settings + loading + saving; PUT /api/settings returned 200 in-flow. Payload structure matches server.py SettingsIn model.",
+    "Cursor pointer-events:none means the ring cannot intercept clicks — verified via computed style. Good.",
+    "Mobile pointer:coarse guard could not be fully exercised via Playwright viewport resize alone (matchMedia still reports 'fine' without has_touch context). The code+CSS guards are however unambiguously correct; recommend a manual smoke on a real touch device or a Playwright context with has_touch=true if strict coverage is desired."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not re-run (unchanged this iteration; previous 25/25)", "frontend": "100% (both bug fixes + all regressions)"},
+  "test_credentials": "admin@agastyastudios.com / agastya-forest-2026 — verified working; /api/settings PUT 200 as admin.",
+  "seed_data_creation": "None. Test modified admin bio in-flow and restored it before finishing.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview URL in .env is https://layer-reveal-1.preview.emergentagent.com (differs from the URL in review request but the .env one is the source of truth). Both bug fixes from iteration-4 (SettingsTab useState restoration, Cursor lag by removing cursor:none + dot) verified functional. No changes required from this iteration. Backend unchanged since iteration 3 — 25 pytest tests at /app/backend/tests/backend_test.py still applicable. Cursor.jsx now uses ONLY a single .cursor-ring (no .cursor-dot) with RAF-lerp 0.22; hover class .cursor-ring-lg toggled by mouseover/mouseout event delegation on interactive selectors.",
+  "rca of the issue": "Bug#1 (Admin About & Contact crash) RCA: The SettingsTab function was missing `const [settings, setSettings] = useState(null);` — a refactor in an earlier iteration removed it, so JSX referencing `settings.founder_name` etc. threw ReferenceError as soon as the tab was activated. Fix (already applied by main agent) restores this line at the top of SettingsTab. Verified: no runtime error, PUT returns 200. Bug#2 (Cursor lag) RCA: Prior implementation set `cursor: none !important` globally, hiding the native OS pointer and forcing users to rely on a JS-driven .cursor-dot that lagged behind mouse position (unthrottled mousemove + mix-blend-mode compositing hit). Fix: keep native OS cursor visible (zero lag), delete .cursor-dot entirely, keep only the aesthetic .cursor-ring which lerps via RAF (0.22) and cannot block clicks (pointer-events:none). Verified: body cursor='auto', 1 ring, 0 dots, ring pointer-events='none'."
+}

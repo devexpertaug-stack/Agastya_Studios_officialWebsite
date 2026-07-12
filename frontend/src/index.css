@@ -189,43 +189,26 @@ select.field-input option { background: #0a1810; color: #f0ead6; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-/* Global cursor follower */
-@media (pointer: fine) {
-  html, body, * { cursor: none !important; }
-  a, button, [role='button'], input, textarea, select, [data-magnetic] { cursor: none !important; }
-}
-.cursor-dot {
-  position: fixed;
-  top: 0; left: 0;
-  width: 6px; height: 6px;
-  border-radius: 999px;
-  background: var(--dawn-500);
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: screen;
-  will-change: transform;
-  transition: width .25s ease, height .25s ease;
-}
+/* Global cursor follower (keeps native OS cursor visible for zero lag; ring is decorative only) */
 .cursor-ring {
   position: fixed;
   top: 0; left: 0;
   width: 36px; height: 36px;
   border-radius: 999px;
-  border: 1px solid rgba(212,165,116,0.55);
+  border: 1px solid rgba(212, 165, 116, 0.5);
   pointer-events: none;
   z-index: 9998;
-  will-change: transform, width, height;
-  transition: width .3s cubic-bezier(0.16,1,0.3,1), height .3s cubic-bezier(0.16,1,0.3,1), border-color .3s ease, background .3s ease;
+  will-change: transform;
+  transition: width .3s cubic-bezier(0.16, 1, 0.3, 1), height .3s cubic-bezier(0.16, 1, 0.3, 1), border-color .3s ease, background .3s ease, opacity .3s ease;
 }
 .cursor-ring-lg {
-  width: 64px; height: 64px;
-  margin-left: -14px; margin-top: -14px;
-  border-color: rgba(212,165,116,0.9);
-  background: rgba(212,165,116,0.08);
+  width: 56px; height: 56px;
+  margin-left: -10px; margin-top: -10px;
+  border-color: rgba(212, 165, 116, 0.9);
+  background: rgba(212, 165, 116, 0.06);
 }
 @media (pointer: coarse) {
-  .cursor-dot, .cursor-ring { display: none; }
-  html, body, * { cursor: auto !important; }
+  .cursor-ring { display: none; }
 }
 
 /* Magnetic hover (subtle translate on hover) */
