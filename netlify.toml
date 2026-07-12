@@ -1,0 +1,22 @@
+# Netlify configuration for the Agastya Studios frontend.
+# The React app lives in /frontend, so we treat that as the build base.
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  # React 19 + CRA build
+  NODE_VERSION = "20"
+  # CRA treats warnings as errors when CI=true (Netlify sets it) — disable that.
+  CI = "false"
+  # Tolerate the React 19 peer-dependency ranges of some libraries.
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# Single Page App fallback so React Router deep links (e.g. /services/voice,
+# /admin) resolve to index.html instead of a 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,6 +1,9 @@
 import axios from "axios";
 
-const BACKEND = process.env.REACT_APP_BACKEND_URL;
+// When REACT_APP_BACKEND_URL is unset (e.g. a frontend-only Netlify deploy),
+// fall back to a relative "/api" base. Dynamic calls (admin, chat, contact,
+// settings) then simply no-op/catch instead of hitting "undefined/api".
+const BACKEND = process.env.REACT_APP_BACKEND_URL || "";
 export const API_BASE = `${BACKEND}/api`;
 
 export const api = axios.create({ baseURL: API_BASE });
