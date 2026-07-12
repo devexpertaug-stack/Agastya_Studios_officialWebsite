@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SITE } from "@/constants/testIds/site";
+import { ArrowRight, Sparkles } from "lucide-react";
 
+// Himalayan forest imagery (Unsplash)
 const BG_IMAGE_1 =
-  "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85";
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=85&auto=format&fit=crop";
 const BG_IMAGE_2 =
-  "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85";
+  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1920&q=85&auto=format&fit=crop";
 
-const SPOTLIGHT_R = 260;
+const SPOTLIGHT_R = 280;
 
 function RevealLayer({ image, cursorX, cursorY }) {
   const canvasRef = useRef(null);
@@ -32,14 +34,7 @@ function RevealLayer({ image, cursorX, cursorY }) {
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const grad = ctx.createRadialGradient(
-      cursorX,
-      cursorY,
-      0,
-      cursorX,
-      cursorY,
-      SPOTLIGHT_R
-    );
+    const grad = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, SPOTLIGHT_R);
     grad.addColorStop(0, "rgba(255,255,255,1)");
     grad.addColorStop(0.4, "rgba(255,255,255,1)");
     grad.addColorStop(0.6, "rgba(255,255,255,0.75)");
@@ -78,32 +73,23 @@ function RevealLayer({ image, cursorX, cursorY }) {
   );
 }
 
-function LithosLogo() {
-  return (
-    <svg
-      width="26"
-      height="26"
-      viewBox="0 0 256 256"
-      fill="#ffffff"
-      aria-hidden="true"
-    >
-      <path d="M 256 256 L 128 256 L 0 128 L 128 128 Z M 256 128 L 128 128 L 0 0 L 128 0 Z" />
-    </svg>
-  );
-}
-
 export default function Hero() {
   const mouse = useRef({ x: -999, y: -999 });
   const smooth = useRef({ x: -999, y: -999 });
   const rafRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
 
+  // Parallax
+  const [scrollY, setScrollY] = useState(0);
+
   useEffect(() => {
     const onMove = (e) => {
       mouse.current.x = e.clientX;
       mouse.current.y = e.clientY;
     };
+    const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener("mousemove", onMove);
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     const tick = () => {
       smooth.current.x += (mouse.current.x - smooth.current.x) * 0.1;
@@ -115,6 +101,7 @@ export default function Hero() {
 
     return () => {
       window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("scroll", onScroll);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
@@ -125,156 +112,110 @@ export default function Hero() {
   };
 
   return (
-    <>
-      {/* Fixed navigation over hero */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between p-4 sm:p-5">
-        <div
-          className="flex items-center gap-2"
-          data-testid={SITE.navLogo}
-        >
-          <LithosLogo />
-          <span className="text-white text-2xl font-playfair italic">
-            Lithos
-          </span>
-        </div>
+    <section
+      data-testid={SITE.heroSection}
+      className="relative w-full overflow-hidden h-screen bg-[#06110b]"
+      style={{ height: "100dvh" }}
+    >
+      {/* Base image with subtle parallax and Ken Burns zoom */}
+      <div
+        className="absolute inset-0 bg-center bg-cover bg-no-repeat z-10 hero-zoom parallax-layer"
+        style={{
+          backgroundImage: `url(${BG_IMAGE_1})`,
+          transform: `translateY(${scrollY * 0.25}px) scale(1)`,
+        }}
+        aria-hidden="true"
+      />
 
-        <div
-          className="hidden md:flex absolute left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-2 py-2 items-center gap-1"
-          data-testid={SITE.navPill}
-        >
-          <button
-            data-testid={SITE.navCourse}
-            onClick={() => scrollTo("about")}
-            className="text-white bg-white/10 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-white/20 transition-colors"
-          >
-            Course
-          </button>
-          <button
-            data-testid={SITE.navFieldGuides}
-            onClick={() => scrollTo("services")}
-            className="text-white/80 hover:bg-white/20 hover:text-white transition-colors px-4 py-1.5 rounded-full text-sm font-medium"
-          >
-            Field Guides
-          </button>
-          <button
-            data-testid={SITE.navGeology}
-            onClick={() => scrollTo("industries")}
-            className="text-white/80 hover:bg-white/20 hover:text-white transition-colors px-4 py-1.5 rounded-full text-sm font-medium"
-          >
-            Geology
-          </button>
-          <button
-            data-testid={SITE.navPlans}
-            onClick={() => scrollTo("contact")}
-            className="text-white/80 hover:bg-white/20 hover:text-white transition-colors px-4 py-1.5 rounded-full text-sm font-medium"
-          >
-            Plans
-          </button>
-          <button
-            data-testid={SITE.navLiveTour}
-            onClick={() => scrollTo("contact")}
-            className="text-white/80 hover:bg-white/20 hover:text-white transition-colors px-4 py-1.5 rounded-full text-sm font-medium"
-          >
-            Live Tour
-          </button>
-        </div>
+      {/* Deep forest tint over base */}
+      <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-[rgba(6,17,11,0.55)] via-[rgba(6,17,11,0.35)] to-[rgba(6,17,11,0.9)]" />
 
-        <button
-          data-testid={SITE.navSignUp}
-          onClick={() => scrollTo("contact")}
-          className="hidden md:block bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100 transition-colors"
-        >
-          Sign Up
-        </button>
+      {/* Reveal layer (sunlit dawn) */}
+      <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
 
-        <button
-          data-testid={SITE.navMobileToggle}
-          onClick={() => scrollTo("contact")}
-          className="md:hidden bg-white text-gray-900 text-xs font-semibold px-4 py-2 rounded-full"
-          aria-label="Sign up"
-        >
-          Sign Up
-        </button>
-      </nav>
-
-      <section
-        data-testid={SITE.heroSection}
-        className="relative w-full overflow-hidden h-screen bg-black"
-        style={{ height: "100dvh" }}
+      {/* Ridge silhouette bottom decoration */}
+      <svg
+        className="absolute bottom-0 left-0 right-0 z-40 pointer-events-none"
+        viewBox="0 0 1440 200"
+        preserveAspectRatio="none"
+        style={{ height: "180px", transform: `translateY(${scrollY * -0.15}px)` }}
       >
-        {/* Base image */}
-        <div
-          className="absolute inset-0 bg-center bg-cover bg-no-repeat z-10 hero-zoom"
-          style={{ backgroundImage: `url(${BG_IMAGE_1})` }}
-          aria-hidden="true"
+        <path
+          d="M0 200 L0 130 L100 90 L200 120 L320 60 L430 100 L560 40 L680 80 L820 30 L960 90 L1100 60 L1240 110 L1360 70 L1440 100 L1440 200 Z"
+          fill="#06110b"
+          opacity="0.85"
         />
+      </svg>
 
-        {/* Reveal layer */}
-        <RevealLayer
-          image={BG_IMAGE_2}
-          cursorX={cursorPos.x}
-          cursorY={cursorPos.y}
-        />
-
-        {/* Heading */}
+      {/* Heading */}
+      <div className="absolute top-[16%] left-0 right-0 flex flex-col items-center text-center px-5 pointer-events-none z-50">
         <div
-          className="absolute top-[14%] left-0 right-0 flex flex-col items-center text-center px-5 pointer-events-none z-50"
+          className="hero-anim hero-fade inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(240,234,214,0.2)] bg-[rgba(240,234,214,0.05)] backdrop-blur-sm text-[11px] uppercase tracking-[0.28em] text-[var(--bone-100)]/80 mb-8"
+          style={{ animationDelay: "0.1s" }}
         >
-          <h1 className="text-white leading-[0.95]">
-            <span
-              data-testid={SITE.heroTitleLine1}
-              className="block font-playfair italic font-normal text-5xl sm:text-7xl md:text-8xl hero-anim hero-reveal"
-              style={{ letterSpacing: "-0.05em", animationDelay: "0.25s" }}
-            >
-              Layers hold
-            </span>
-            <span
-              data-testid={SITE.heroTitleLine2}
-              className="block font-normal text-5xl sm:text-7xl md:text-8xl -mt-1 hero-anim hero-reveal"
-              style={{ letterSpacing: "-0.08em", animationDelay: "0.42s" }}
-            >
-              tales of time
-            </span>
-          </h1>
+          <Sparkles size={12} className="text-[var(--dawn-500)]" />
+          Agastya Studios — Uttarakhand → Everywhere
         </div>
 
-        {/* Bottom-left paragraph */}
-        <div
-          className="hidden sm:block absolute bottom-14 left-10 md:left-14 max-w-[260px] z-50 hero-anim hero-fade"
-          style={{ animationDelay: "0.7s" }}
-        >
-          <p
-            data-testid={SITE.heroLeftParagraph}
-            className="text-sm text-white/80 leading-relaxed"
+        <h1 className="text-[var(--bone-100)] leading-[0.95]">
+          <span
+            data-testid={SITE.heroTitleLine1}
+            className="block font-serif-italic font-normal text-5xl sm:text-7xl md:text-8xl hero-anim hero-reveal"
+            style={{ letterSpacing: "-0.03em", animationDelay: "0.25s" }}
           >
-            Every layer of sediment records a chapter of our planet, from
-            ancient seabeds to drifting ash, layered across millions of years
-            beneath us.
-          </p>
-        </div>
+            Forests hold
+          </span>
+          <span
+            data-testid={SITE.heroTitleLine2}
+            className="block font-normal text-5xl sm:text-7xl md:text-8xl -mt-1 hero-anim hero-reveal"
+            style={{ letterSpacing: "-0.06em", animationDelay: "0.42s" }}
+          >
+            the quiet intelligence.
+          </span>
+        </h1>
+      </div>
 
-        {/* Bottom-right block */}
-        <div
-          className="absolute bottom-10 sm:bottom-24 left-5 right-5 sm:left-auto sm:right-10 md:right-14 max-w-full sm:max-w-[260px] flex flex-col items-start gap-4 sm:gap-5 z-50 hero-anim hero-fade"
-          style={{ animationDelay: "0.85s" }}
-        >
-          <p
-            data-testid={SITE.heroRightParagraph}
-            className="text-xs sm:text-sm text-white/80 leading-relaxed"
-          >
-            Our interactive maps let you peel back the crust to trace how
-            stones, fossils, and deep time combine to shape the ground beneath
-            your feet.
-          </p>
+      {/* Bottom-left small quote */}
+      <div
+        className="hidden sm:block absolute bottom-[18%] left-8 md:left-14 max-w-[280px] z-50 hero-anim hero-fade"
+        style={{ animationDelay: "0.7s" }}
+      >
+        <p className="text-sm text-[var(--bone-100)]/75 leading-relaxed font-serif-italic">
+          &ldquo;Old pines don&rsquo;t hurry. They keep working while everyone
+          else sleeps.&rdquo;
+        </p>
+        <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[var(--mist)]">
+          — A grandmother in Kumaon
+        </p>
+      </div>
+
+      {/* Bottom-right CTA + copy */}
+      <div
+        className="absolute bottom-[14%] sm:bottom-[18%] left-5 right-5 sm:left-auto sm:right-10 md:right-14 max-w-full sm:max-w-[320px] flex flex-col items-start gap-4 sm:gap-5 z-50 hero-anim hero-fade"
+        style={{ animationDelay: "0.85s" }}
+      >
+        <p className="text-xs sm:text-sm text-[var(--bone-100)]/80 leading-relaxed">
+          We are a small Uttarakhand-rooted studio building AI agents,
+          websites and design that make brands feel patient, considered — and
+          twice as productive.
+        </p>
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             data-testid={SITE.heroCta}
-            onClick={() => scrollTo("about")}
-            className="bg-[#e8702a] hover:bg-[#d2611f] text-white text-sm font-medium px-7 py-3 rounded-full transition-all hover:scale-[1.03] active:scale-95 hover:shadow-lg hover:shadow-[#e8702a]/30"
+            onClick={() => scrollTo("services")}
+            className="btn-forest flex items-center gap-2"
           >
-            Start Digging
+            See our craft <ArrowRight size={16} />
+          </button>
+          <button
+            data-testid={SITE.heroSecondaryCta}
+            onClick={() => scrollTo("contact")}
+            className="btn-ghost text-sm"
+          >
+            Book a scoping call
           </button>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

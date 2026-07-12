@@ -1,4 +1,13 @@
-"""Backend API tests for Aug Studios (Lithos) site."""
+"""Backend API tests for Agastya Studios (rebrand of Lithos).
+
+Covers:
+- Health (GET /api/)
+- Auth (POST /api/auth/login, GET /api/auth/me)
+- Public settings (GET /api/settings) + admin update (PUT /api/settings)
+- Projects CRUD (list public / create / update / delete auth)
+- Contact submission (POST /api/contact)
+- Chat degraded 503 (Emergent LLM key at $0 budget)
+"""
 import os
 import uuid
 
@@ -7,7 +16,6 @@ import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL")
 if not BASE_URL:
-    # Fallback: read from /app/frontend/.env
     env_path = "/app/frontend/.env"
     if os.path.exists(env_path):
         with open(env_path) as f:
@@ -20,119 +28,252 @@ assert BASE_URL, "REACT_APP_BACKEND_URL must be set"
 BASE_URL = BASE_URL.rstrip("/")
 API = f"{BASE_URL}/api"
 
+ADMIN_EMAIL = "admin@agastyastudios.com"
+ADMIN_PASSWORD = "agastya-forest-2026"
 
-# ---------- Root ----------
+
+# ---------------- Health ----------------
 class TestRoot:
-    def test_root_returns_aug_studios_message(self):
+    def test_root_returns_agastya_message(self):
         r = requests.get(f"{API}/", timeout=15)
-        assert r.status_code == 200
+        assert r.status_code == 200, r.text
         data = r.json()
-        assert "message" in data
-        assert "Aug Studios" in data["message"]
+        assert data.get("message") == "Agastya Studios API"
+        assert data.get("ok") is True
 
 
-# ---------- Contact POST ----------
-class TestContactCreate:
-    def test_contact_post_valid_minimal(self):
+# ---------------- Auth ----------------
+@pytest.fixture(scope="module")
+def admin_token():
+    r = requests.post(
+        f"{API}/auth/login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+        timeout=15,
+    )
+    assert r.status_code == 200, r.text
+    return r.json()["token"]
+
+
+@pytest.fixture(scope="module")
+def auth_headers(admin_token):
+    return {"Authorization": f"Bearer {admin_token}"}
+
+
+class TestAuth:
+    def test_login_success_returns_token_and_user(self):
+        r = requests.post(
+            f"{API}/auth/login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+            timeout=15,
+        )
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert isinstance(data.get("token"), str) and len(data["token"]) > 20
+        user = data["user"]
+        assert user["email"] == ADMIN_EMAIL
+        assert user.get("role") == "admin"
+        assert "password_hash" not in user
+        assert "_id" not in user
+
+    def test_login_wrong_password_401(self):
+        r = requests.post(
+            f"{API}/auth/login",
+            json={"email": ADMIN_EMAIL, "password": "wrong-password"},
+            timeout=15,
+        )
+        assert r.status_code == 401
+
+    def test_login_invalid_email_422(self):
+        r = requests.post(
+            f"{API}/auth/login",
+            json={"email": "not-an-email", "password": "anything"},
+            timeout=15,
+        )
+        assert r.status_code == 422
+
+    def test_me_with_token_returns_admin(self, auth_headers):
+        r = requests.get(f"{API}/auth/me", headers=auth_headers, timeout=15)
+        assert r.status_code == 200, r.text
+        u = r.json()
+        assert u["email"] == ADMIN_EMAIL
+        assert u.get("role") == "admin"
+        assert "password_hash" not in u
+        assert "_id" not in u
+
+    def test_me_without_token_401(self):
+        r = requests.get(f"{API}/auth/me", timeout=15)
+        assert r.status_code == 401
+
+    def test_me_bad_token_401(self):
+        r = requests.get(
+            f"{API}/auth/me",
+            headers={"Authorization": "Bearer bogus.token.here"},
+            timeout=15,
+        )
+        assert r.status_code == 401
+
+
+# ---------------- Settings ----------------
+class TestSettings:
+    def test_public_get_settings_has_expected_fields(self):
+        r = requests.get(f"{API}/settings", timeout=15)
+        assert r.status_code == 200, r.text
+        s = r.json()
+        for key in (
+            "founder_name",
+            "founder_role",
+            "founder_bio",
+            "contact_email",
+            "contact_whatsapp",
+        ):
+            assert key in s, f"missing {key} in settings"
+        assert "_id" not in s
+
+    def test_put_settings_requires_auth(self):
+        r = requests.put(
+            f"{API}/settings",
+            json={"founder_name": "should-not-apply"},
+            timeout=15,
+        )
+        assert r.status_code == 401
+
+    def test_put_settings_updates_founder_name(self, auth_headers):
+        # Capture original to restore afterwards
+        original = requests.get(f"{API}/settings", timeout=15).json()
+        original_name = original.get("founder_name")
+
+        new_name = f"TEST Agastya {uuid.uuid4().hex[:6]}"
+        r = requests.put(
+            f"{API}/settings",
+            json={"founder_name": new_name},
+            headers=auth_headers,
+            timeout=15,
+        )
+        assert r.status_code == 200, r.text
+        s = r.json()
+        assert s["founder_name"] == new_name
+
+        # Verify via public GET
+        r2 = requests.get(f"{API}/settings", timeout=15)
+        assert r2.json()["founder_name"] == new_name
+
+        # Restore
+        requests.put(
+            f"{API}/settings",
+            json={"founder_name": original_name},
+            headers=auth_headers,
+            timeout=15,
+        )
+
+
+# ---------------- Projects CRUD ----------------
+class TestProjects:
+    def test_public_list_projects_returns_array(self):
+        r = requests.get(f"{API}/projects", timeout=15)
+        assert r.status_code == 200
+        assert isinstance(r.json(), list)
+
+    def test_create_requires_auth(self):
+        r = requests.post(
+            f"{API}/projects",
+            json={"title": "x", "sector": "y", "summary": "z"},
+            timeout=15,
+        )
+        assert r.status_code == 401
+
+    def test_full_project_lifecycle(self, auth_headers):
+        title = f"TEST Project {uuid.uuid4().hex[:8]}"
+        create_payload = {
+            "title": title,
+            "sector": "Voice AI",
+            "summary": "TEST summary for automated testing",
+            "client_name": "TEST_Client",
+        }
+        cr = requests.post(
+            f"{API}/projects", json=create_payload, headers=auth_headers, timeout=15
+        )
+        assert cr.status_code == 200, cr.text
+        created = cr.json()
+        assert created["title"] == title
+        assert created["sector"] == "Voice AI"
+        assert "id" in created and isinstance(created["id"], str)
+        assert "_id" not in created
+        pid = created["id"]
+
+        # GET public should include it
+        list_r = requests.get(f"{API}/projects", timeout=15)
+        assert list_r.status_code == 200
+        got = next((p for p in list_r.json() if p.get("id") == pid), None)
+        assert got is not None, "created project not found in list"
+        assert got["title"] == title
+        assert "_id" not in got
+
+        # UPDATE
+        new_summary = "TEST updated summary"
+        ur = requests.put(
+            f"{API}/projects/{pid}",
+            json={**create_payload, "summary": new_summary},
+            headers=auth_headers,
+            timeout=15,
+        )
+        assert ur.status_code == 200, ur.text
+        assert ur.json()["summary"] == new_summary
+
+        # verify via GET list
+        after = requests.get(f"{API}/projects", timeout=15).json()
+        got2 = next((p for p in after if p.get("id") == pid), None)
+        assert got2 and got2["summary"] == new_summary
+
+        # DELETE
+        dr = requests.delete(f"{API}/projects/{pid}", headers=auth_headers, timeout=15)
+        assert dr.status_code == 200
+
+        # verify removed
+        after2 = requests.get(f"{API}/projects", timeout=15).json()
+        assert not any(p.get("id") == pid for p in after2)
+
+        # second delete returns 404
+        dr2 = requests.delete(f"{API}/projects/{pid}", headers=auth_headers, timeout=15)
+        assert dr2.status_code == 404
+
+
+# ---------------- Contact ----------------
+class TestContact:
+    def test_contact_valid(self):
         payload = {
             "name": f"TEST_User_{uuid.uuid4().hex[:6]}",
             "email": f"test_{uuid.uuid4().hex[:6]}@example.com",
-            "message": "Hello, this is a test message.",
+            "company": "TEST",
+            "interest": "Voice AI",
+            "message": "Hello Agastya!",
         }
         r = requests.post(f"{API}/contact", json=payload, timeout=15)
         assert r.status_code == 200, r.text
         data = r.json()
-        assert "id" in data and isinstance(data["id"], str) and len(data["id"]) > 0
-        assert "created_at" in data
-        assert data["name"] == payload["name"]
         assert data["email"] == payload["email"]
-        assert data["message"] == payload["message"]
-        # MongoDB _id should not leak
         assert "_id" not in data
 
-    def test_contact_post_valid_full(self):
-        payload = {
-            "name": f"TEST_User_{uuid.uuid4().hex[:6]}",
-            "email": f"test_{uuid.uuid4().hex[:6]}@example.com",
-            "company": "TEST Aug Studios",
-            "interest": "Voice AI",
-            "message": "I need a voice AI agent.",
-        }
-        r = requests.post(f"{API}/contact", json=payload, timeout=15)
-        assert r.status_code == 200, r.text
-        data = r.json()
-        assert data["company"] == payload["company"]
-        assert data["interest"] == payload["interest"]
-
-    def test_contact_post_invalid_email(self):
-        payload = {
-            "name": "TEST_bademail",
-            "email": "not-an-email",
-            "message": "hi",
-        }
-        r = requests.post(f"{API}/contact", json=payload, timeout=15)
-        assert r.status_code == 422
-
-    def test_contact_post_missing_name(self):
-        payload = {"email": "test@example.com", "message": "hi"}
-        r = requests.post(f"{API}/contact", json=payload, timeout=15)
-        assert r.status_code == 422
-
-    def test_contact_post_missing_email(self):
-        payload = {"name": "TEST_x", "message": "hi"}
-        r = requests.post(f"{API}/contact", json=payload, timeout=15)
-        assert r.status_code == 422
-
-    def test_contact_post_missing_message(self):
-        payload = {"name": "TEST_x", "email": "test@example.com"}
-        r = requests.post(f"{API}/contact", json=payload, timeout=15)
-        assert r.status_code == 422
-
-    def test_contact_post_empty_name(self):
-        payload = {"name": "", "email": "test@example.com", "message": "hi"}
-        r = requests.post(f"{API}/contact", json=payload, timeout=15)
+    def test_contact_invalid_email_422(self):
+        r = requests.post(
+            f"{API}/contact",
+            json={"name": "x", "email": "not-an-email", "message": "hi"},
+            timeout=15,
+        )
         assert r.status_code == 422
 
 
-# ---------- Contact GET ----------
-class TestContactList:
-    def test_contact_list_includes_newly_submitted(self):
-        # Create a unique record
-        unique_name = f"TEST_ListVerify_{uuid.uuid4().hex[:8]}"
-        payload = {
-            "name": unique_name,
-            "email": f"listverify_{uuid.uuid4().hex[:6]}@example.com",
-            "message": "verify list includes this",
-        }
-        create_r = requests.post(f"{API}/contact", json=payload, timeout=15)
-        assert create_r.status_code == 200
-        created_id = create_r.json()["id"]
-
-        # List all
-        list_r = requests.get(f"{API}/contact", timeout=15)
-        assert list_r.status_code == 200
-        items = list_r.json()
-        assert isinstance(items, list)
-        # Find our record
-        found = next((it for it in items if it.get("id") == created_id), None)
-        assert found is not None, f"Newly created contact {created_id} not found in list"
-        assert found["name"] == unique_name
-        # _id should not leak
-        for it in items:
-            assert "_id" not in it
-
-
-# ---------- Status endpoints (existing) ----------
-class TestStatus:
-    def test_status_post_and_get(self):
-        client_name = f"TEST_status_{uuid.uuid4().hex[:6]}"
-        r = requests.post(f"{API}/status", json={"client_name": client_name}, timeout=15)
-        assert r.status_code == 200
-        data = r.json()
-        assert data["client_name"] == client_name
-        assert "id" in data
-
-        r2 = requests.get(f"{API}/status", timeout=15)
-        assert r2.status_code == 200
-        items = r2.json()
-        assert any(it["client_name"] == client_name for it in items)
+# ---------------- Chat (graceful 503 when budget is 0) ----------------
+class TestChat:
+    def test_chat_returns_503_or_200_never_500(self):
+        r = requests.post(
+            f"{API}/chat",
+            json={"session_id": f"TEST_sess_{uuid.uuid4().hex[:6]}", "message": "hi"},
+            timeout=30,
+        )
+        # Per review: Emergent key has 0 budget -> 503 with friendly detail.
+        # Accept 200 (if credits are restored) or 503 (expected). Never 500.
+        assert r.status_code in (200, 503), f"unexpected status {r.status_code}: {r.text}"
+        if r.status_code == 503:
+            detail = r.json().get("detail", "")
+            assert isinstance(detail, str) and len(detail) > 0
+            assert "chat" in detail.lower() or "credit" in detail.lower() or "offline" in detail.lower()

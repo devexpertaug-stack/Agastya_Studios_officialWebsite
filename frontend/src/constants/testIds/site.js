@@ -2,37 +2,46 @@ export const SITE = {
   // Nav
   navLogo: "nav-logo",
   navPill: "nav-pill",
-  navCourse: "nav-item-course",
-  navFieldGuides: "nav-item-field-guides",
-  navGeology: "nav-item-geology",
-  navPlans: "nav-item-plans",
-  navLiveTour: "nav-item-live-tour",
-  navSignUp: "nav-signup-btn",
+  navHome: "nav-item-home",
+  navServices: "nav-item-services",
+  navWork: "nav-item-work",
+  navPricing: "nav-item-pricing",
+  navAbout: "nav-item-about",
+  navContactBtn: "nav-contact-btn",
   navMobileToggle: "nav-mobile-toggle",
 
   // Hero
   heroSection: "hero-section",
   heroTitleLine1: "hero-title-line-1",
   heroTitleLine2: "hero-title-line-2",
-  heroLeftParagraph: "hero-left-paragraph",
-  heroRightParagraph: "hero-right-paragraph",
-  heroCta: "hero-cta-start-digging",
+  heroCta: "hero-cta",
+  heroSecondaryCta: "hero-secondary-cta",
 
   // About
   aboutSection: "about-section",
+  aboutPhoto: "about-photo",
   aboutHeading: "about-heading",
-  aboutStat24: "about-stat-24-7",
-  aboutStat10: "about-stat-10plus",
-  aboutStatDesign: "about-stat-design-led",
+  aboutBio: "about-bio",
 
   // Services
   servicesSection: "services-section",
   servicesHeading: "services-heading",
-  serviceCategory: (slug) => `service-category-${slug}`,
+  serviceCard: (slug) => `service-card-${slug}`,
+  serviceCardLink: (slug) => `service-card-link-${slug}`,
 
-  // Industries
-  industriesSection: "industries-section",
-  industryCard: (slug) => `industry-card-${slug}`,
+  // Service detail page
+  serviceDetail: (slug) => `service-detail-${slug}`,
+  serviceDetailBack: "service-detail-back",
+  serviceDetailContact: "service-detail-contact",
+
+  // Testimonials / case studies
+  testimonialsSection: "testimonials-section",
+  caseStudiesSection: "case-studies-section",
+
+  // Pricing
+  pricingSection: "pricing-section",
+  pricingCard: (tier) => `pricing-card-${tier}`,
+  pricingCta: (tier) => `pricing-cta-${tier}`,
 
   // Contact
   contactSection: "contact-section",
@@ -47,4 +56,24 @@ export const SITE = {
 
   // Footer
   footer: "footer",
+
+  // Chatbot
+  chatToggle: "chat-toggle",
+  chatPanel: "chat-panel",
+  chatInput: "chat-input",
+  chatSend: "chat-send",
+  chatMessages: "chat-messages",
+  chatClose: "chat-close",
+
+  // Login / Admin
+  loginForm: "login-form",
+  loginEmail: "login-email",
+  loginPassword: "login-password",
+  loginSubmit: "login-submit",
+  adminNav: "admin-nav",
+  adminLogout: "admin-logout",
+  adminProjectsTab: "admin-projects-tab",
+  adminSettingsTab: "admin-settings-tab",
+  adminAddProject: "admin-add-project",
+  adminSaveSettings: "admin-save-settings",
 };

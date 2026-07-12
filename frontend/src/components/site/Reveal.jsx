@@ -16,7 +16,7 @@ export default function Reveal({ children, className = "", delay = 0, as: Tag = 
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.12 }
     );
     obs.observe(el);
     return () => obs.disconnect();

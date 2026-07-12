@@ -1,97 +1,93 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Instagram, Linkedin, ArrowUpRight } from "lucide-react";
 import { SITE } from "@/constants/testIds/site";
-import { Instagram, Linkedin } from "lucide-react";
-
-function LithosLogo() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 256 256" fill="#ffffff">
-      <path d="M 256 256 L 128 256 L 0 128 L 128 128 Z M 256 128 L 128 128 L 0 0 L 128 0 Z" />
-    </svg>
-  );
-}
+import { AgastyaLogo } from "@/components/site/Nav";
+import { api } from "@/lib/api";
 
 export default function Footer() {
+  const [settings, setSettings] = useState(null);
+  useEffect(() => {
+    api.get("/settings").then((r) => setSettings(r.data)).catch(() => {});
+  }, []);
+  const email = settings?.contact_email || "devexpertaug@gmail.com";
+  const whatsapp = settings?.contact_whatsapp || "+917906411716";
+  const waNum = whatsapp.replace(/[^0-9]/g, "");
+
   return (
     <footer
       data-testid={SITE.footer}
-      className="relative bg-[#050505] text-white border-t border-white/10"
+      className="relative bg-[#06110b] text-[var(--bone-100)] border-t border-[rgba(168,192,144,0.12)] overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-10 py-16 grid grid-cols-1 md:grid-cols-12 gap-10">
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-[var(--moss-400)]/8 blur-[160px]" />
+
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10 py-20 grid grid-cols-1 md:grid-cols-12 gap-10">
         <div className="md:col-span-5 flex flex-col gap-5">
-          <div className="flex items-center gap-2">
-            <LithosLogo />
-            <span className="text-white text-2xl font-playfair italic">
-              Lithos
+          <div className="flex items-center gap-2.5">
+            <AgastyaLogo />
+            <span className="text-2xl font-serif-italic">Agastya</span>
+            <span className="text-[11px] uppercase tracking-[0.32em] text-[var(--mist)] mt-1 ml-1">
+              Studios
             </span>
           </div>
-          <p className="text-white/60 text-sm leading-relaxed max-w-sm">
-            An AI-agents and creative-tech studio building the automation
-            behind great brands.
+          <p className="text-[var(--bone-100)]/65 text-sm leading-relaxed max-w-sm">
+            A quiet, Uttarakhand-rooted AI + creative-tech studio. Building the
+            automation behind good brands — patient, useful, on brand.
+          </p>
+          <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--mist)] mt-4">
+            Kumaon → Everywhere
           </p>
         </div>
+
         <div className="md:col-span-3">
-          <h4 className="text-white/50 text-xs uppercase tracking-[0.25em] mb-4">
+          <h4 className="text-[var(--mist)] text-xs uppercase tracking-[0.28em] mb-5">
             Studio
           </h4>
-          <ul className="flex flex-col gap-2 text-sm text-white/80">
-            <li><a href="#about" className="hover:text-[#e8702a] transition-colors">About</a></li>
-            <li><a href="#services" className="hover:text-[#e8702a] transition-colors">Capabilities</a></li>
-            <li><a href="#industries" className="hover:text-[#e8702a] transition-colors">Industry Packages</a></li>
-            <li><a href="#contact" className="hover:text-[#e8702a] transition-colors">Contact</a></li>
+          <ul className="flex flex-col gap-2.5 text-sm">
+            <li><a href="/#about" className="link-warm">About</a></li>
+            <li><a href="/#services" className="link-warm">Capabilities</a></li>
+            <li><a href="/#work" className="link-warm">Recent Work</a></li>
+            <li><a href="/#pricing" className="link-warm">Pricing</a></li>
+            <li><a href="/#contact" className="link-warm">Contact</a></li>
+            <li><Link to="/login" className="link-warm">Admin</Link></li>
           </ul>
         </div>
+
         <div className="md:col-span-4">
-          <h4 className="text-white/50 text-xs uppercase tracking-[0.25em] mb-4">
-            Elsewhere
+          <h4 className="text-[var(--mist)] text-xs uppercase tracking-[0.28em] mb-5">
+            Reach out
           </h4>
-          <ul className="flex flex-col gap-2 text-sm text-white/80">
+          <ul className="flex flex-col gap-2.5 text-sm">
             <li>
-              <a
-                href="mailto:hello@augstudios.ai"
-                className="hover:text-[#e8702a] transition-colors"
-              >
-                hello@augstudios.ai
+              <a href={`mailto:${email}`} className="link-warm inline-flex items-center gap-1.5 group">
+                {email}
+                <ArrowUpRight size={14} className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </a>
             </li>
             <li>
-              <a
-                href="https://wa.me/15550102025"
-                className="hover:text-[#e8702a] transition-colors"
-                target="_blank"
-                rel="noreferrer"
-              >
-                WhatsApp +1 (555) 010-2025
+              <a href={`https://wa.me/${waNum}`} target="_blank" rel="noreferrer" className="link-warm inline-flex items-center gap-1.5 group">
+                WhatsApp {whatsapp}
+                <ArrowUpRight size={14} className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </a>
             </li>
-            <li className="flex items-center gap-4 pt-2">
-              <a
-                href="https://instagram.com/augstudios"
-                aria-label="Instagram"
-                className="text-white/60 hover:text-[#e8702a] transition-colors"
-                target="_blank"
-                rel="noreferrer"
-              >
+            <li className="flex items-center gap-4 pt-3">
+              <a href="https://instagram.com" aria-label="Instagram" className="text-[var(--bone-100)]/60 hover:text-[var(--dawn-500)] transition-colors" target="_blank" rel="noreferrer">
                 <Instagram size={18} />
               </a>
-              <a
-                href="https://linkedin.com/company/augstudios"
-                aria-label="LinkedIn"
-                className="text-white/60 hover:text-[#e8702a] transition-colors"
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a href="https://linkedin.com" aria-label="LinkedIn" className="text-[var(--bone-100)]/60 hover:text-[var(--dawn-500)] transition-colors" target="_blank" rel="noreferrer">
                 <Linkedin size={18} />
               </a>
             </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/5">
+
+      <div className="relative border-t border-[rgba(168,192,144,0.08)]">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <p className="text-xs text-white/40">
-            © {new Date().getFullYear()} Lithos Studio. All rights reserved.
+          <p className="text-xs text-[var(--bone-100)]/40">
+            © {new Date().getFullYear()} Agastya Studios. Made slowly, in the hills.
           </p>
-          <p className="text-xs text-white/40 font-playfair italic">
+          <p className="text-xs text-[var(--bone-100)]/40 font-serif-italic">
             Design-led automation. Craft on every touchpoint.
           </p>
         </div>
