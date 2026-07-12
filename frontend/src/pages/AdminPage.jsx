@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { SITE } from "@/constants/testIds/site";
 import { AgastyaLogo } from "@/components/site/Nav";
+import { SERVICE_CATEGORIES } from "@/data/services";
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -78,13 +79,20 @@ export default function AdminPage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex items-center gap-3 border-b border-[rgba(168,192,144,0.12)] mb-10">
+        <div className="flex items-center gap-3 border-b border-[rgba(168,192,144,0.12)] mb-10 flex-wrap">
           <TabBtn
             testId={SITE.adminProjectsTab}
             active={tab === "projects"}
             onClick={() => setTab("projects")}
           >
             Projects
+          </TabBtn>
+          <TabBtn
+            testId={SITE.adminServicesTab}
+            active={tab === "services"}
+            onClick={() => setTab("services")}
+          >
+            Services
           </TabBtn>
           <TabBtn
             testId={SITE.adminSettingsTab}
@@ -95,7 +103,9 @@ export default function AdminPage() {
           </TabBtn>
         </div>
 
-        {tab === "projects" ? <ProjectsTab /> : <SettingsTab />}
+        {tab === "projects" && <ProjectsTab />}
+        {tab === "services" && <ServicesTab />}
+        {tab === "settings" && <SettingsTab />}
       </div>
     </div>
   );
@@ -143,6 +153,7 @@ function ProjectsTab() {
       title: "",
       sector: SECTORS[0],
       summary: "",
+      description: "",
       outcome: "",
       client_name: "",
       image_data_url: "",
@@ -279,6 +290,7 @@ function ProjectEditor({ initial, onClose, onSaved }) {
         title: form.title,
         sector: form.sector,
         summary: form.summary,
+        description: form.description || null,
         outcome: form.outcome || null,
         client_name: form.client_name || null,
         image_data_url: form.image_data_url || null,
@@ -348,9 +360,22 @@ function ProjectEditor({ initial, onClose, onSaved }) {
           <textarea
             value={form.summary}
             onChange={(e) => change("summary", e.target.value)}
-            rows={4}
+            rows={3}
             className="field-input resize-none"
             required
+          />
+        </label>
+
+        <label className="flex flex-col gap-2">
+          <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">
+            Full story (project page) &mdash; optional
+          </span>
+          <textarea
+            value={form.description || ""}
+            onChange={(e) => change("description", e.target.value)}
+            rows={7}
+            className="field-input resize-none"
+            placeholder="Tell the whole story — background, what you built, the outcome. Blank lines create paragraphs."
           />
         </label>
 
@@ -379,8 +404,238 @@ function ProjectEditor({ initial, onClose, onSaved }) {
   );
 }
 
+function ServicesTab() {
+  const [overrides, setOverrides] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // {slug, ...}
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get("/service-content");
+      setOverrides(data || {});
+    } catch (e) {
+      toast.error("Could not load service overrides");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const startEdit = (cat) => {
+    const ov = overrides[cat.slug] || {};
+    setEditing({
+      slug: cat.slug,
+      name: cat.title,
+      title: ov.title || cat.title,
+      blurb: ov.blurb || cat.blurb,
+      image: ov.image || cat.image,
+      web: ov.web || cat.web,
+      features: (ov.features || cat.features).join("\n"),
+      workflow: (ov.workflow || cat.workflow).join("\n"),
+    });
+  };
+
+  const onImage = async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > 1_500_000) {
+      toast.error("Image too big. Upload under 1.5MB.");
+      return;
+    }
+    const dataUrl = await fileToDataUrl(f);
+    setEditing((s) => ({ ...s, image: dataUrl }));
+  };
+
+  const save = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.put(`/service-content/${editing.slug}`, {
+        title: editing.title,
+        blurb: editing.blurb,
+        image: editing.image,
+        web: editing.web,
+        features: editing.features.split(/\n/).map((s) => s.trim()).filter(Boolean),
+        workflow: editing.workflow.split(/\n/).map((s) => s.trim()).filter(Boolean),
+      });
+      toast.success("Saved. Refresh the site to see it.");
+      setEditing(null);
+      load();
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err?.response?.data?.detail));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const reset = async (slug) => {
+    if (!window.confirm("Reset this service to defaults?")) return;
+    try {
+      await api.delete(`/service-content/${slug}`);
+      toast.success("Reset to defaults");
+      setEditing(null);
+      load();
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err?.response?.data?.detail));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-[var(--bone-100)]/60">
+        <Loader2 size={16} className="animate-spin" /> Loading…
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-4xl md:text-5xl font-serif-italic tracking-[-0.02em]">
+          Service pages
+        </h1>
+        <p className="text-sm text-[var(--bone-100)]/60 mt-2 max-w-xl">
+          Edit each capability&rsquo;s title, blurb, image, features and workflow. Leave alone to keep defaults. Reset restores the seed content.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {SERVICE_CATEGORIES.map((cat) => {
+          const ov = overrides[cat.slug];
+          const image = ov?.image || cat.image;
+          const title = ov?.title || cat.title;
+          const blurb = ov?.blurb || cat.blurb;
+          return (
+            <div key={cat.slug} className="card-forest rounded-2xl overflow-hidden flex flex-col">
+              <div className="aspect-[16/8] overflow-hidden bg-[#0a1810]">
+                <img src={image} alt={title} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-5 flex flex-col gap-2 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.24em] text-[var(--dawn-500)]">
+                    {cat.slug}
+                  </span>
+                  {ov && (
+                    <span className="text-[10px] uppercase tracking-[0.24em] text-[var(--moss-400)]">
+                      overridden
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-xl font-serif-italic">{title}</h3>
+                <p className="text-xs text-[var(--bone-100)]/60 leading-relaxed line-clamp-3">
+                  {blurb}
+                </p>
+                <div className="flex items-center gap-3 mt-3">
+                  <button
+                    data-testid={SITE.adminServiceEdit(cat.slug)}
+                    onClick={() => startEdit(cat)}
+                    className="text-xs inline-flex items-center gap-1.5 text-[var(--bone-100)]/80 hover:text-[var(--dawn-500)] transition-colors"
+                  >
+                    <Edit2 size={13} /> Edit
+                  </button>
+                  {ov && (
+                    <button
+                      onClick={() => reset(cat.slug)}
+                      className="text-xs inline-flex items-center gap-1.5 text-[var(--bone-100)]/60 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={13} /> Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {editing && (
+        <div className="fixed inset-0 z-[200] bg-[#06110b]/85 backdrop-blur-md flex items-start sm:items-center justify-center overflow-y-auto p-4">
+          <form
+            onSubmit={save}
+            className="relative w-full max-w-2xl bg-[#0a1810] border border-[rgba(168,192,144,0.2)] rounded-2xl p-6 md:p-8 flex flex-col gap-5"
+          >
+            <button type="button" onClick={() => setEditing(null)} className="absolute top-4 right-4 text-[var(--bone-100)]/60 hover:text-[var(--dawn-500)]">
+              <X size={20} />
+            </button>
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-[var(--mist)] mb-2">
+                Edit service · {editing.slug}
+              </p>
+              <h2 className="text-3xl font-serif-italic">{editing.name}</h2>
+            </div>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">Title</span>
+              <input value={editing.title} onChange={(e) => setEditing((s) => ({ ...s, title: e.target.value }))} className="field-input" />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">Blurb (card + hero)</span>
+              <textarea value={editing.blurb} onChange={(e) => setEditing((s) => ({ ...s, blurb: e.target.value }))} rows={3} className="field-input resize-none" />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">Cover image</span>
+              <input type="file" accept="image/*" onChange={onImage} className="text-xs text-[var(--bone-100)]/70" />
+              <input
+                type="text"
+                value={editing.image}
+                onChange={(e) => setEditing((s) => ({ ...s, image: e.target.value }))}
+                placeholder="or paste an image URL"
+                className="field-input mt-1 text-xs"
+              />
+            </label>
+
+            {editing.image && (
+              <div className="rounded-xl overflow-hidden border border-[rgba(168,192,144,0.15)]">
+                <img src={editing.image} alt="Preview" className="w-full h-48 object-cover" />
+              </div>
+            )}
+
+            <label className="flex flex-col gap-2">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">Features (one per line)</span>
+              <textarea value={editing.features} onChange={(e) => setEditing((s) => ({ ...s, features: e.target.value }))} rows={6} className="field-input resize-none text-xs" />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">Workflow (one step per line)</span>
+              <textarea value={editing.workflow} onChange={(e) => setEditing((s) => ({ ...s, workflow: e.target.value }))} rows={4} className="field-input resize-none text-xs" />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">Web-dev layer note</span>
+              <textarea value={editing.web} onChange={(e) => setEditing((s) => ({ ...s, web: e.target.value }))} rows={3} className="field-input resize-none" />
+            </label>
+
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
+              <button data-testid={SITE.adminServiceSave} type="submit" disabled={saving} className="btn-forest inline-flex items-center gap-2 disabled:opacity-70">
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save
+              </button>
+              <button
+                data-testid={SITE.adminServiceReset}
+                type="button"
+                onClick={() => reset(editing.slug)}
+                className="btn-ghost text-sm inline-flex items-center gap-2"
+              >
+                <Trash2 size={14} /> Reset to default
+              </button>
+              <button type="button" onClick={() => setEditing(null)} className="text-sm text-[var(--bone-100)]/70 hover:text-[var(--dawn-500)]">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsTab() {
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 

@@ -25,7 +25,7 @@ export default function Pricing() {
           <div className="md:col-span-5">
             <Reveal>
               <p className="text-xs uppercase tracking-[0.32em] text-[var(--mist)] mb-6">
-                05 &nbsp;— &nbsp; Pricing
+                05 &nbsp;— &nbsp; Plans
               </p>
             </Reveal>
             <Reveal delay={80}>
@@ -44,6 +44,12 @@ export default function Pricing() {
                 weekly optimisation and a very human WhatsApp line.
               </p>
             </Reveal>
+            <Reveal delay={200}>
+              <p className="mt-3 text-[var(--bone-100)]/55 text-sm leading-relaxed max-w-xl font-serif-italic">
+                Every quote is bespoke — because your context shapes the number
+                more than a price tag ever could.
+              </p>
+            </Reveal>
           </div>
         </div>
 
@@ -52,7 +58,7 @@ export default function Pricing() {
             <Reveal key={t.tier} delay={i * 80}>
               <div
                 data-testid={SITE.pricingCard(t.tier)}
-                className={`relative h-full flex flex-col p-8 md:p-10 rounded-2xl transition-all duration-500 ${
+                className={`relative h-full flex flex-col p-8 md:p-10 rounded-2xl transition-all duration-500 hover:-translate-y-1 ${
                   t.highlighted
                     ? "bg-gradient-to-b from-[var(--forest-500)]/40 to-[var(--forest-700)]/40 border border-[var(--dawn-500)]/50 shadow-[0_30px_80px_-30px_rgba(212,165,116,0.35)]"
                     : "card-forest"
@@ -77,9 +83,6 @@ export default function Pricing() {
                 <h3 className="text-4xl md:text-5xl mb-3">
                   <span className="font-serif-italic">{t.name}</span>
                 </h3>
-                <div className="flex items-baseline gap-2 mb-5">
-                  <span className="text-3xl font-medium">{t.price}</span>
-                </div>
                 <p className="text-[var(--bone-100)]/70 text-sm leading-relaxed mb-8">
                   {t.tagline}
                 </p>
@@ -96,7 +99,7 @@ export default function Pricing() {
                 <button
                   data-testid={SITE.pricingCta(t.tier)}
                   onClick={() => scrollTo("contact")}
-                  className={`mt-auto w-full text-sm font-semibold py-3 rounded-full transition-all ${
+                  className={`mt-auto w-full text-sm font-semibold py-3 rounded-full transition-all magnetic ${
                     t.highlighted
                       ? "bg-[var(--dawn-500)] text-[var(--forest-950)] hover:bg-[var(--dawn-400)] hover:scale-[1.02]"
                       : "border border-[var(--bone-100)]/25 text-[var(--bone-100)] hover:border-[var(--dawn-500)] hover:text-[var(--dawn-500)] hover:bg-[rgba(212,165,116,0.05)]"
@@ -111,9 +114,8 @@ export default function Pricing() {
 
         <Reveal delay={280}>
           <p className="mt-14 text-center text-xs text-[var(--mist)]">
-            Prices in Indian Rupees, roughly. All packages are quoted after a
-            free 30-minute scoping call — because your context matters more
-            than a menu.
+            Prices are shared after a free 30-minute scoping call — because
+            your context matters more than a menu.
           </p>
         </Reveal>
       </div>

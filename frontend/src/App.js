@@ -6,9 +6,11 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import HomePage from "@/pages/HomePage";
 import ServiceDetail from "@/pages/ServiceDetail";
+import ProjectDetail from "@/pages/ProjectDetail";
 import LoginPage from "@/pages/LoginPage";
 import AdminPage from "@/pages/AdminPage";
 import Chatbot from "@/components/site/Chatbot";
+import Cursor from "@/components/site/Cursor";
 
 // Scroll to hash after route change
 function HashScroll() {
@@ -49,12 +51,13 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/services/:slug" element={<ServiceDetail />} />
+            <Route path="/work/:id" element={<ProjectDetail />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<HomePage />} />
           </Routes>
-          {/* Chatbot lives outside routes so it's on every page */}
           <Chatbot />
+          <Cursor />
         </AuthProvider>
       </BrowserRouter>
     </div>

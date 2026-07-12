@@ -124,6 +124,120 @@ async def seed_settings():
         logger.info("Seeded site settings")
 
 
+SEED_PROJECTS = [
+    {
+        "title": "Alpine Apparel — cart recovery agent",
+        "sector": "E-commerce & D2C",
+        "summary": "Cart-recovery + stylist agent → +38% recovered checkout revenue in 60 days.",
+        "outcome": "+38% recovered revenue",
+        "client_name": "Alpine Apparel",
+        "description": (
+            "Alpine is a Dehradun-born apparel label that had a beautiful storefront but a leaky checkout. "
+            "We built a WhatsApp cart-recovery agent that speaks in their tone, a photo-based stylist that suggests "
+            "outfits from a customer's own selfie, and a light restock notifier — all wired through a bespoke Shopify "
+            "Hydrogen storefront we rebuilt in three weeks. The three agents talk to each other: the stylist knows what "
+            "you almost bought, the recovery agent knows what the stylist suggested. Within 60 days, recovered "
+            "checkout revenue was up 38% and average order value up 14%. Nothing about the funnel screams 'automated'."
+        ),
+        "image_data_url": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=85&auto=format&fit=crop",
+    },
+    {
+        "title": "Rawat Wellness — 24/7 receptionist",
+        "sector": "Voice AI",
+        "summary": "Voice receptionist + reminder bot, resulting in +22% show-up rate and 340 answered calls in week one.",
+        "outcome": "0 → 340 answered calls / week",
+        "client_name": "Rawat Wellness, Dehradun",
+        "description": (
+            "A wellness clinic in Dehradun was losing appointments to unanswered calls after 6pm. "
+            "We designed a Hindi + English voice agent named Rishi that picks up 24/7, books, transfers to a human "
+            "when needed, and sends SMS + WhatsApp reminders the day before. In the first week, 340 calls were "
+            "answered that would otherwise have been missed. Show-up rate rose 22% within the first month, and the "
+            "clinic launched two new evening slots because the calendar was finally full."
+        ),
+        "image_data_url": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=1600&q=85&auto=format&fit=crop",
+    },
+    {
+        "title": "Ridge & Route — trilingual live chat",
+        "sector": "Conversational & Support",
+        "summary": "3-language chat agent → 61% ticket deflection with CSAT unchanged at 4.7/5.",
+        "outcome": "61% ticket deflection",
+        "client_name": "Ridge & Route Travel",
+        "description": (
+            "A Rishikesh-based travel company runs group treks across the Garhwal Himalayas. Their support inbox "
+            "was drowning in the same 20 questions in Hindi, English and Punjabi. We shipped a multilingual chat "
+            "agent trained on their itineraries, permits and safety guides — with a graceful hand-off to a human on "
+            "anything medical or booking-critical. Within eight weeks, 61% of tickets were resolved by the agent, "
+            "CSAT held at 4.7/5, and the support team started running a weekly 'best conversation' show-and-tell "
+            "instead of triaging inboxes."
+        ),
+        "image_data_url": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1600&q=85&auto=format&fit=crop",
+    },
+    {
+        "title": "Deodar Cloud — pipeline agent stack",
+        "sector": "Sales & Lead Gen",
+        "summary": "Qualification + booking + follow-up agents → 3.2× meetings per SDR, 47% shorter sales cycle.",
+        "outcome": "3.2× SDR productivity",
+        "client_name": "Deodar Cloud",
+        "description": (
+            "Deodar is a SaaS company selling into mid-market ops teams. Their SDRs were spending 70% of their day "
+            "on unqualified leads. We built three agents: a qualification bot that runs a BANT-style intake, a "
+            "booking agent that owns the calendar tetris, and a nurture agent that reheats cold leads on email + "
+            "WhatsApp. The CRM stays updated automatically. SDRs now walk into meetings that are already qualified, "
+            "briefed and scheduled — and quota attainment went from 62% to 138% over one quarter."
+        ),
+        "image_data_url": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1600&q=85&auto=format&fit=crop",
+    },
+    {
+        "title": "Meraki Retreats — a booking site people bookmark",
+        "sector": "Web Development",
+        "summary": "Custom booking site + parallax storytelling → +64% direct bookings within a season.",
+        "outcome": "+64% direct bookings",
+        "client_name": "Meraki Retreats",
+        "description": (
+            "Meraki runs a set of forest retreats in Chopta and Munsyari. They wanted a website that felt like the "
+            "place — quiet, considered, slow to load a scroll but fast to load a page. We built a bespoke Next.js "
+            "site with GPU-friendly parallax, a hand-crafted booking flow, and a small assistant that answers questions "
+            "about the trails, food and connectivity. Direct bookings rose 64% in the first quarter and the cost per "
+            "booking (previously bleeding to OTAs) dropped to a third of what it was. Best part: guests write in "
+            "saying the site felt like the trip."
+        ),
+        "image_data_url": "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=1600&q=85&auto=format&fit=crop",
+    },
+    {
+        "title": "Sanjhi — a wellness brand that feels like a forest",
+        "sector": "Graphic Design",
+        "summary": "Full identity + packaging + web → sold out first drop in 11 days.",
+        "outcome": "Sold out first drop in 11 days",
+        "client_name": "Sanjhi",
+        "description": (
+            "Sanjhi is a founder-led wellness label rooted in Ayurvedic ritual. We led strategy, identity and "
+            "packaging from scratch — including a custom wordmark set in a rare Devanagari-inspired serif, a "
+            "12-piece packaging kit and a launch microsite with subtle spring-morning motion. The first drop sold "
+            "out in 11 days and the brand now sits in six curated wellness stores. Sanjhi's founder said the "
+            "identity looked like the brand she'd been trying to describe for two years."
+        ),
+        "image_data_url": "https://images.unsplash.com/photo-1561070791-2526d30994b8?w=1600&q=85&auto=format&fit=crop",
+    },
+]
+
+
+async def seed_projects():
+    count = await db.projects.count_documents({})
+    if count > 0:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    docs = []
+    for p in SEED_PROJECTS:
+        docs.append({
+            "id": str(uuid.uuid4()),
+            "created_at": now,
+            **p,
+        })
+    if docs:
+        await db.projects.insert_many(docs)
+        logger.info("Seeded %d projects", len(docs))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
@@ -132,6 +246,7 @@ async def lifespan(app: FastAPI):
         await db.projects.create_index("created_at")
         await seed_admin()
         await seed_settings()
+        await seed_projects()
     except Exception:
         logger.exception("Startup init failed")
     yield
@@ -181,8 +296,9 @@ class ProjectIn(BaseModel):
     title: str = Field(min_length=1, max_length=160)
     sector: str = Field(min_length=1, max_length=80)
     summary: str = Field(min_length=1, max_length=800)
+    description: Optional[str] = Field(default=None, max_length=6000)
     outcome: Optional[str] = Field(default=None, max_length=200)
-    image_data_url: Optional[str] = Field(default=None, max_length=1_800_000)  # base64
+    image_data_url: Optional[str] = Field(default=None, max_length=1_800_000)  # base64 or URL
     client_name: Optional[str] = Field(default=None, max_length=160)
 
 
@@ -337,6 +453,14 @@ async def list_projects():
     return docs
 
 
+@api.get("/projects/{project_id}")
+async def get_project(project_id: str):
+    doc = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return doc
+
+
 @api.post("/projects", response_model=Project)
 async def create_project(payload: ProjectIn, user=Depends(get_current_admin)):
     obj = Project(**payload.model_dump())
@@ -359,6 +483,46 @@ async def delete_project(project_id: str, user=Depends(get_current_admin)):
     res = await db.projects.delete_one({"id": project_id})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Project not found")
+    return {"ok": True}
+
+
+# ---------- Routes: service content overrides ----------
+class ServiceContentIn(BaseModel):
+    title: Optional[str] = Field(default=None, max_length=120)
+    blurb: Optional[str] = Field(default=None, max_length=800)
+    image: Optional[str] = Field(default=None, max_length=1_800_000)
+    features: Optional[List[str]] = None
+    workflow: Optional[List[str]] = None
+    web: Optional[str] = Field(default=None, max_length=1200)
+
+
+@api.get("/service-content")
+async def list_service_content():
+    docs = await db.service_content.find({}, {"_id": 0}).to_list(200)
+    return {d["slug"]: d for d in docs}
+
+
+@api.get("/service-content/{slug}")
+async def get_service_content(slug: str):
+    doc = await db.service_content.find_one({"slug": slug}, {"_id": 0})
+    return doc or {"slug": slug}
+
+
+@api.put("/service-content/{slug}")
+async def upsert_service_content(slug: str, payload: ServiceContentIn, user=Depends(get_current_admin)):
+    update = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if not update:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    update["slug"] = slug
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.service_content.update_one({"slug": slug}, {"$set": update}, upsert=True)
+    doc = await db.service_content.find_one({"slug": slug}, {"_id": 0})
+    return doc
+
+
+@api.delete("/service-content/{slug}")
+async def reset_service_content(slug: str, user=Depends(get_current_admin)):
+    await db.service_content.delete_one({"slug": slug})
     return {"ok": True}
 
 

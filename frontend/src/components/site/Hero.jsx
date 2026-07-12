@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { SITE } from "@/constants/testIds/site";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-// Himalayan forest imagery (Unsplash)
+// Hero backgrounds — misty Garhwal pines → ice-capped Nanda Devi (Uttarakhand)
 const BG_IMAGE_1 =
   "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=85&auto=format&fit=crop";
+// Ice-capped Nanda Devi / Himalayan snow range
 const BG_IMAGE_2 =
-  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1920&q=85&auto=format&fit=crop";
+  "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=1920&q=85&auto=format&fit=crop";
 
 const SPOTLIGHT_R = 280;
 
@@ -79,17 +80,16 @@ export default function Hero() {
   const rafRef = useRef(null);
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
 
-  // Parallax
-  const [scrollY, setScrollY] = useState(0);
+  // Refs for smooth parallax (updated via RAF-throttled scroll — no React re-render)
+  const bgRef = useRef(null);
+  const ridgeRef = useRef(null);
 
   useEffect(() => {
     const onMove = (e) => {
       mouse.current.x = e.clientX;
       mouse.current.y = e.clientY;
     };
-    const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("scroll", onScroll, { passive: true });
 
     const tick = () => {
       smooth.current.x += (mouse.current.x - smooth.current.x) * 0.1;
@@ -98,6 +98,24 @@ export default function Hero() {
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
+
+    // RAF-throttled parallax scroll (avoids React re-renders — no jitter)
+    let scrollTicking = false;
+    const onScroll = () => {
+      if (scrollTicking) return;
+      scrollTicking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (bgRef.current) {
+          bgRef.current.style.transform = `translate3d(0, ${y * 0.25}px, 0)`;
+        }
+        if (ridgeRef.current) {
+          ridgeRef.current.style.transform = `translate3d(0, ${y * -0.08}px, 0)`;
+        }
+        scrollTicking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       window.removeEventListener("mousemove", onMove);
@@ -117,57 +135,66 @@ export default function Hero() {
       className="relative w-full overflow-hidden h-screen bg-[#06110b]"
       style={{ height: "100dvh" }}
     >
-      {/* Base image with subtle parallax and Ken Burns zoom */}
+      {/* Base image with Ken Burns zoom (parallax via ref) */}
       <div
-        className="absolute inset-0 bg-center bg-cover bg-no-repeat z-10 hero-zoom parallax-layer"
-        style={{
-          backgroundImage: `url(${BG_IMAGE_1})`,
-          transform: `translateY(${scrollY * 0.25}px) scale(1)`,
-        }}
-        aria-hidden="true"
-      />
+        ref={bgRef}
+        className="absolute inset-0 z-10 hero-zoom parallax-layer"
+        style={{ willChange: "transform" }}
+      >
+        <div
+          className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+          style={{ backgroundImage: `url(${BG_IMAGE_1})` }}
+          aria-hidden="true"
+        />
+      </div>
 
       {/* Deep forest tint over base */}
-      <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-[rgba(6,17,11,0.55)] via-[rgba(6,17,11,0.35)] to-[rgba(6,17,11,0.9)]" />
+      <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-[rgba(6,17,11,0.55)] via-[rgba(6,17,11,0.35)] to-[rgba(6,17,11,0.95)]" />
 
-      {/* Reveal layer (sunlit dawn) */}
+      {/* Reveal layer (Nanda Devi snow peaks) */}
       <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
 
-      {/* Ridge silhouette bottom decoration */}
-      <svg
+      {/* Ridge silhouette bottom decoration (ref-driven parallax) */}
+      <div
+        ref={ridgeRef}
         className="absolute bottom-0 left-0 right-0 z-40 pointer-events-none"
-        viewBox="0 0 1440 200"
-        preserveAspectRatio="none"
-        style={{ height: "180px", transform: `translateY(${scrollY * -0.15}px)` }}
+        style={{ willChange: "transform" }}
       >
-        <path
-          d="M0 200 L0 130 L100 90 L200 120 L320 60 L430 100 L560 40 L680 80 L820 30 L960 90 L1100 60 L1240 110 L1360 70 L1440 100 L1440 200 Z"
-          fill="#06110b"
-          opacity="0.85"
-        />
-      </svg>
+        <svg
+          viewBox="0 0 1440 200"
+          preserveAspectRatio="none"
+          className="w-full"
+          style={{ height: "180px" }}
+        >
+          <path
+            d="M0 200 L0 130 L100 90 L200 120 L320 60 L430 100 L560 40 L680 80 L820 30 L960 90 L1100 60 L1240 110 L1360 70 L1440 100 L1440 200 Z"
+            fill="#06110b"
+            opacity="0.92"
+          />
+        </svg>
+      </div>
 
-      {/* Heading */}
-      <div className="absolute top-[16%] left-0 right-0 flex flex-col items-center text-center px-5 pointer-events-none z-50">
+      {/* Heading — placed higher so it doesn't collide with bottom copy */}
+      <div className="absolute top-[15%] sm:top-[18%] left-0 right-0 flex flex-col items-center text-center px-5 pointer-events-none z-50">
         <div
-          className="hero-anim hero-fade inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(240,234,214,0.2)] bg-[rgba(240,234,214,0.05)] backdrop-blur-sm text-[11px] uppercase tracking-[0.28em] text-[var(--bone-100)]/80 mb-8"
+          className="hero-anim hero-fade inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(240,234,214,0.2)] bg-[rgba(240,234,214,0.05)] backdrop-blur-sm text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[var(--bone-100)]/80 mb-6 sm:mb-8"
           style={{ animationDelay: "0.1s" }}
         >
           <Sparkles size={12} className="text-[var(--dawn-500)]" />
-          Agastya Studios — Uttarakhand → Everywhere
+          Agastya Studios — Garhwal → Everywhere
         </div>
 
-        <h1 className="text-[var(--bone-100)] leading-[0.95]">
+        <h1 className="text-[var(--bone-100)] leading-[0.95] max-w-[95vw]">
           <span
             data-testid={SITE.heroTitleLine1}
-            className="block font-serif-italic font-normal text-5xl sm:text-7xl md:text-8xl hero-anim hero-reveal"
+            className="block font-serif-italic font-normal text-[3rem] sm:text-6xl md:text-7xl lg:text-[6.5rem] hero-anim hero-reveal"
             style={{ letterSpacing: "-0.03em", animationDelay: "0.25s" }}
           >
             Forests hold
           </span>
           <span
             data-testid={SITE.heroTitleLine2}
-            className="block font-normal text-5xl sm:text-7xl md:text-8xl -mt-1 hero-anim hero-reveal"
+            className="block font-normal text-[3rem] sm:text-6xl md:text-7xl lg:text-[6.5rem] -mt-1 hero-anim hero-reveal"
             style={{ letterSpacing: "-0.06em", animationDelay: "0.42s" }}
           >
             the quiet intelligence.
@@ -175,9 +202,9 @@ export default function Hero() {
         </h1>
       </div>
 
-      {/* Bottom-left small quote */}
+      {/* Bottom-left quote (hidden on small screens to avoid overlap) */}
       <div
-        className="hidden sm:block absolute bottom-[18%] left-8 md:left-14 max-w-[280px] z-50 hero-anim hero-fade"
+        className="hidden lg:block absolute bottom-[10%] left-8 xl:left-14 max-w-[260px] z-50 hero-anim hero-fade"
         style={{ animationDelay: "0.7s" }}
       >
         <p className="text-sm text-[var(--bone-100)]/75 leading-relaxed font-serif-italic">
@@ -185,32 +212,31 @@ export default function Hero() {
           else sleeps.&rdquo;
         </p>
         <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[var(--mist)]">
-          — A grandmother in Kumaon
+          — A grandmother in Garhwal
         </p>
       </div>
 
-      {/* Bottom-right CTA + copy */}
+      {/* Bottom-right CTA + copy — pushed further down + smaller on md */}
       <div
-        className="absolute bottom-[14%] sm:bottom-[18%] left-5 right-5 sm:left-auto sm:right-10 md:right-14 max-w-full sm:max-w-[320px] flex flex-col items-start gap-4 sm:gap-5 z-50 hero-anim hero-fade"
+        className="absolute bottom-[8%] sm:bottom-[10%] left-5 right-5 lg:left-auto lg:right-10 xl:right-14 max-w-full lg:max-w-[300px] flex flex-col items-start gap-3 sm:gap-4 z-50 hero-anim hero-fade"
         style={{ animationDelay: "0.85s" }}
       >
-        <p className="text-xs sm:text-sm text-[var(--bone-100)]/80 leading-relaxed">
-          We are a small Uttarakhand-rooted studio building AI agents,
-          websites and design that make brands feel patient, considered — and
-          twice as productive.
+        <p className="hidden sm:block text-xs sm:text-sm text-[var(--bone-100)]/80 leading-relaxed">
+          A small Garhwal-rooted studio building AI agents, websites and design
+          that make brands feel patient — and twice as productive.
         </p>
         <div className="flex items-center gap-3 flex-wrap">
           <button
             data-testid={SITE.heroCta}
             onClick={() => scrollTo("services")}
-            className="btn-forest flex items-center gap-2"
+            className="btn-forest flex items-center gap-2 magnetic"
           >
             See our craft <ArrowRight size={16} />
           </button>
           <button
             data-testid={SITE.heroSecondaryCta}
             onClick={() => scrollTo("contact")}
-            className="btn-ghost text-sm"
+            className="btn-ghost text-sm magnetic"
           >
             Book a scoping call
           </button>

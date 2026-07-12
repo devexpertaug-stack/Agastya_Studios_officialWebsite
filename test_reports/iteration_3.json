@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration-3 tested all reported bug fixes and new features on Agastya Studios. Backend: 25/25 pytest passing (extended with seed-projects checks, GET /projects/{id} 200/404, service-content GET/PUT/DELETE lifecycle with 401 gates). Frontend: Hero has NO overlap between heading (bottom=414px) and bottom-right block (top=639px) at 1440x820, gap=224px. Hero badge reads 'Agastya Studios — Garhwal → Everywhere', quote reads 'A grandmother in Garhwal', title lines are 'Forests hold' / 'the quiet intelligence.'. Chat toggle displays as a pill with MessageCircle + 'Chat to Rishi'; collapses on open. Cursor follower (.cursor-dot + .cursor-ring) rendered on desktop. Pricing shows exactly 3 cards (seed/grove/forest), Grove is highlighted 'Most chosen', ZERO numeric prices (no ₹, no NL), scoping-call note is present. Home Testimonials/Recent Work shows exactly 6 REAL seeded projects (no seed-* fallback ids). Project detail /work/{id} renders with back button, sector chip, client name, title, outcome (Sparkles line), cover image, 'The story' + multi-paragraph description, blockquote of outcome, CTAs 'Talk to the studio' and 'See more work', and 'Neighbouring peaks' with 3 project links. Invalid /work/does-not-exist shows 'Trail not found.'. Cards on home navigate correctly to /work/{id} via <Link> wrapping. Admin /admin: login OK with admin@agastyastudios.com / agastya-forest-2026, all 3 tabs (Projects, Services, About&Contact) render, Services tab shows 10 service edit buttons; Edit modal for ecommerce opens with title, blurb, cover image (file + URL), features (one-per-line textarea), workflow (one-per-line textarea), web-dev layer note; both admin-service-save + admin-service-reset buttons present. Project editor contains a 'Full story (project page) — optional' textarea that maps to description. Service detail /services/voice loads without console errors. Scroll from 0→900px produces 0 console errors (RAF-throttled parallax fix confirmed). No console errors on /, /work/{id}, /services/voice, /login, /admin.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Footer",
+        "issue": "Footer under-badge still displayed 'KUMAON → EVERYWHERE' instead of the requested 'GARHWAL → EVERYWHERE' (review item #4). Fixed in /app/frontend/src/components/site/Footer.jsx line 38 — changed to 'Garhwal → Everywhere'.",
+        "selector": "footer -> Kumaon → Everywhere text",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "None blocking. Copy fix ('Kumaon' → 'Garhwal' in Footer.jsx) already applied by test agent. Main agent can visually confirm on a rebuild."
+  ],
+  "critical_code_review_comments": [
+    "Hero.jsx parallax now mutates element.style.transform inside RAF with a scrollTicking guard and does not call setState — this correctly avoids React re-renders per scroll event; observed 0 console errors + smooth transform during a 0→900px scroll sweep.",
+    "Testimonials.jsx correctly wraps only non-seed-* cards in a <Link to=`/work/{id}`>, and uses id starting with 'seed-' as the guard — verified 6 real cards render (backend has 6 seeded projects) and each is a real UUID (no 'seed-' prefix).",
+    "ProjectDetail.jsx splits description on double-newlines; seed projects use single paragraphs so they render as one <p> — fine. If future content contains \\n\\n they'll split cleanly.",
+    "server.py service-content endpoints: GET returns dict keyed by slug, PUT/DELETE gated by auth (verified 401 without token), single-slug GET returns {'slug': X} when empty. All shapes align with useServiceCategories.js merging logic.",
+    "server.py seed_projects() only inserts when db.projects.count_documents({}) == 0 — this means if an admin deletes all projects, next server restart re-seeds. Acceptable for MVP; note if unexpected.",
+    "AdminPage ServicesTab is present with data-testid=admin-services-tab and 10 admin-service-edit-{slug} buttons; modal correctly PUTs to /api/service-content/{slug} with title/blurb/image/features/workflow/web fields (matches ServiceContentIn on backend).",
+    "Cursor.jsx correctly returns null on (pointer:coarse) touch devices via matchMedia guard; on desktop uses RAF interpolation for the ring."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (added TestSeedProjectsAndGetById + TestServiceContent — 9 new tests)",
+    "/app/frontend/src/components/site/Footer.jsx (Kumaon → Garhwal)"
+  ],
+  "success_rate": {"backend": "100% (25/25)", "frontend": "100% (all critical flows) + 1 copy fix applied"},
+  "test_credentials": "admin@agastyastudios.com / agastya-forest-2026 (from /app/memory/test_credentials.md) — verified working; JWT returned & /api/auth/me confirmed role=admin.",
+  "seed_data_creation": "Backend auto-seeds 6 projects on startup (verified all 6 titles present with full description/outcome/client_name/image_data_url). Tests created TEST_ prefixed contact + short-lived TEST_ projects (cleaned up in-test) and a TEST_ service-content override on 'ecommerce' slug (deleted at end of lifecycle test).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test suite at /app/backend/tests/backend_test.py runs 25 tests in ~7s under parallel xdist. New coverage: TestSeedProjectsAndGetById (6 seed projects + GET by id + 404), TestServiceContent (public dict, empty-slug fallback, 401 gates on PUT/DELETE, full lifecycle create→list→get→reset). REACT_APP_BACKEND_URL=https://layer-reveal-1.preview.emergentagent.com. Frontend: /work/:id route wired, ProjectDetail component renders story with paragraphs.map — text is inside Reveal so use scrolling to make it visible in innerText tests (HTML content check works). Admin services tab data-testid=admin-services-tab; per-service edit btn data-testid=admin-service-edit-{slug}; modal save=admin-service-save, reset=admin-service-reset. Chat toggle now labelled 'Chat to Rishi' in expanded pill state and collapses to circular X with rotate-90 when open.",
+  "rca of the issue": "Original hero overlap RCA: heading was at top-1/2 which placed it directly over the bottom-right copy at desktop 1440x820; fix moves h1 to top-[15%] (sm:top-[18%]) and pushes bottom copy to bottom-[8%] (sm:bottom-[10%]) — measured gap = 224px, no overlap. Parallax jitter RCA: previous impl used setState on scroll causing 60fps React re-render storms; new impl uses refs (bgRef, ridgeRef) with RAF-throttled scroll handler that mutates element.style.transform directly (0 React updates on scroll) — verified with 9-step scroll sweep producing 0 console errors and smooth transforms. Footer copy bug RCA: leftover 'Kumaon' string was not updated when rest of site moved to 'Garhwal'; a single-file grep found and fixed one occurrence."
+}

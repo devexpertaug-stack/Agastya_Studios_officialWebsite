@@ -34,6 +34,17 @@ export const SITE = {
   serviceDetailBack: "service-detail-back",
   serviceDetailContact: "service-detail-contact",
 
+  // Project detail
+  projectDetail: (id) => `project-detail-${id}`,
+  projectDetailBack: "project-detail-back",
+  projectCard: (id) => `project-card-${id}`,
+
+  // Admin services tab
+  adminServicesTab: "admin-services-tab",
+  adminServiceEdit: (slug) => `admin-service-edit-${slug}`,
+  adminServiceSave: "admin-service-save",
+  adminServiceReset: "admin-service-reset",
+
   // Testimonials / case studies
   testimonialsSection: "testimonials-section",
   caseStudiesSection: "case-studies-section",

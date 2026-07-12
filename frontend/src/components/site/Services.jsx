@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import Reveal from "@/components/site/Reveal";
 import { SITE } from "@/constants/testIds/site";
-import { SERVICE_CATEGORIES } from "@/data/services";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 
 function ServiceCard({ cat, i }) {
   const Icon = cat.icon;
@@ -68,6 +68,7 @@ function ServiceCard({ cat, i }) {
 }
 
 export default function Services() {
+  const categories = useServiceCategories();
   return (
     <section
       id="services"
@@ -111,7 +112,7 @@ export default function Services() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {SERVICE_CATEGORIES.map((cat, i) => (
+          {categories.map((cat, i) => (
             <ServiceCard key={cat.slug} cat={cat} i={i} />
           ))}
         </div>

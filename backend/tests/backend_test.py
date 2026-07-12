@@ -262,6 +262,132 @@ class TestContact:
         assert r.status_code == 422
 
 
+# ---------------- Seed projects (6 auto-seeded) + GET by id ----------------
+class TestSeedProjectsAndGetById:
+    def test_seed_projects_exist(self):
+        r = requests.get(f"{API}/projects", timeout=15)
+        assert r.status_code == 200
+        items = r.json()
+        assert isinstance(items, list)
+        # Exclude any TEST_ prefixed test-created projects
+        non_test = [p for p in items if not str(p.get("title", "")).startswith("TEST")]
+        assert len(non_test) >= 6, f"expected >=6 seed projects, got {len(non_test)}"
+        expected_titles = {
+            "Alpine Apparel — cart recovery agent",
+            "Rawat Wellness — 24/7 receptionist",
+            "Ridge & Route — trilingual live chat",
+            "Deodar Cloud — pipeline agent stack",
+            "Meraki Retreats — a booking site people bookmark",
+            "Sanjhi — a wellness brand that feels like a forest",
+        }
+        titles = {p.get("title") for p in non_test}
+        missing = expected_titles - titles
+        assert not missing, f"missing seed projects: {missing}"
+        # Verify shape
+        for p in non_test:
+            if p.get("title") in expected_titles:
+                for key in ("id", "title", "sector", "summary", "description", "outcome", "client_name", "image_data_url"):
+                    assert key in p and p[key], f"seed project '{p.get('title')}' missing/empty '{key}'"
+
+    def test_get_project_by_id_success(self):
+        items = requests.get(f"{API}/projects", timeout=15).json()
+        pid = items[0]["id"]
+        r = requests.get(f"{API}/projects/{pid}", timeout=15)
+        assert r.status_code == 200, r.text
+        data = r.json()
+        assert data["id"] == pid
+        assert "_id" not in data
+
+    def test_get_project_by_id_404(self):
+        r = requests.get(f"{API}/projects/does-not-exist-xyz", timeout=15)
+        assert r.status_code == 404
+
+
+# ---------------- Service Content Overrides ----------------
+class TestServiceContent:
+    SLUG = "ecommerce"
+
+    def test_public_get_service_content_dict(self):
+        r = requests.get(f"{API}/service-content", timeout=15)
+        assert r.status_code == 200
+        data = r.json()
+        assert isinstance(data, dict)
+
+    def test_get_slug_empty_returns_slug_only(self):
+        # unique slug so it stays "empty"
+        slug = f"nonexistent-slug-{uuid.uuid4().hex[:6]}"
+        r = requests.get(f"{API}/service-content/{slug}", timeout=15)
+        assert r.status_code == 200
+        assert r.json() == {"slug": slug}
+
+    def test_get_slug_layer_reveal_1_returns_slug_when_empty(self):
+        # First reset (in case previous run left it)
+        r = requests.get(f"{API}/service-content/layer-reveal-1", timeout=15)
+        assert r.status_code == 200
+        data = r.json()
+        assert data.get("slug") == "layer-reveal-1"
+
+    def test_put_service_content_requires_auth(self):
+        r = requests.put(
+            f"{API}/service-content/{self.SLUG}",
+            json={"title": "should-not-apply"},
+            timeout=15,
+        )
+        assert r.status_code == 401
+
+    def test_full_service_content_lifecycle(self, auth_headers):
+        slug = self.SLUG
+        payload = {
+            "title": f"TEST override title {uuid.uuid4().hex[:6]}",
+            "blurb": "TEST override blurb",
+            "features": ["x", "y"],
+        }
+        # PUT
+        r = requests.put(
+            f"{API}/service-content/{slug}",
+            json=payload,
+            headers=auth_headers,
+            timeout=15,
+        )
+        assert r.status_code == 200, r.text
+        saved = r.json()
+        assert saved["slug"] == slug
+        assert saved["title"] == payload["title"]
+        assert saved["blurb"] == payload["blurb"]
+        assert saved["features"] == payload["features"]
+        assert "_id" not in saved
+
+        # GET slug reflects override
+        r2 = requests.get(f"{API}/service-content/{slug}", timeout=15)
+        assert r2.status_code == 200
+        assert r2.json()["title"] == payload["title"]
+
+        # Public dict includes override
+        r3 = requests.get(f"{API}/service-content", timeout=15)
+        assert r3.status_code == 200
+        dct = r3.json()
+        assert slug in dct
+        assert dct[slug]["title"] == payload["title"]
+
+        # DELETE resets
+        r4 = requests.delete(
+            f"{API}/service-content/{slug}", headers=auth_headers, timeout=15
+        )
+        assert r4.status_code == 200
+
+        # GET after reset — empty (just slug)
+        r5 = requests.get(f"{API}/service-content/{slug}", timeout=15)
+        assert r5.status_code == 200
+        data5 = r5.json()
+        assert data5.get("slug") == slug
+        # title should be gone
+        assert "title" not in data5 or data5.get("title") is None
+
+    def test_delete_requires_auth(self):
+        r = requests.delete(f"{API}/service-content/anything", timeout=15)
+        assert r.status_code == 401
+
+
 # ---------------- Chat (graceful 503 when budget is 0) ----------------
 class TestChat:
     def test_chat_returns_503_or_200_never_500(self):

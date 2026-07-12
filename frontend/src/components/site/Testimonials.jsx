@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Reveal from "@/components/site/Reveal";
 import { SITE } from "@/constants/testIds/site";
 import { GLOBAL_TESTIMONIALS, SERVICE_CATEGORIES } from "@/data/services";
@@ -103,9 +104,12 @@ export default function Testimonials() {
           data-testid={SITE.caseStudiesSection}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
         >
-          {showProjects.map((p, i) => (
-            <Reveal key={p.id} delay={80 * (i % 3)}>
-              <article className="card-forest rounded-2xl overflow-hidden h-full flex flex-col group">
+          {showProjects.map((p, i) => {
+            const inner = (
+              <article
+                data-testid={SITE.projectCard(p.id)}
+                className="card-forest rounded-2xl overflow-hidden h-full flex flex-col group magnetic cursor-pointer"
+              >
                 <div className="relative aspect-[16/10] overflow-hidden">
                   {p.image_data_url ? (
                     <img
@@ -134,10 +138,20 @@ export default function Testimonials() {
                   <p className="text-sm text-[var(--bone-100)]/70 leading-relaxed">
                     {p.summary}
                   </p>
+                  <span className="mt-auto pt-4 text-xs text-[var(--dawn-500)] font-medium inline-flex items-center gap-1 group-hover:tracking-wider transition-all">
+                    Read the story →
+                  </span>
                 </div>
               </article>
-            </Reveal>
-          ))}
+            );
+
+            const isReal = !String(p.id || "").startsWith("seed-");
+            return (
+              <Reveal key={p.id} delay={80 * (i % 3)}>
+                {isReal ? <Link to={`/work/${p.id}`}>{inner}</Link> : inner}
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>

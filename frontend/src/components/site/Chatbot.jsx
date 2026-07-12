@@ -72,18 +72,27 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* Toggle */}
+      {/* Toggle — expandable pill with "Chat to Rishi" label */}
       <button
         data-testid={SITE.chatToggle}
         onClick={() => setOpen((v) => !v)}
-        aria-label={open ? "Close chat" : "Open chat"}
-        className={`fixed z-[120] bottom-5 right-5 md:bottom-8 md:right-8 flex items-center justify-center w-14 h-14 rounded-full shadow-[0_10px_40px_-10px_rgba(212,165,116,0.5)] transition-all duration-500 ${
+        aria-label={open ? "Close chat" : "Chat to Rishi"}
+        className={`fixed z-[120] bottom-5 right-5 md:bottom-8 md:right-8 flex items-center gap-2.5 rounded-full shadow-[0_10px_40px_-10px_rgba(212,165,116,0.5)] transition-all duration-500 group ${
           open
-            ? "bg-[#0a1810] border border-[rgba(212,165,116,0.4)] text-[var(--dawn-500)] rotate-90"
-            : "bg-[var(--dawn-500)] text-[var(--forest-950)] hover:scale-110"
+            ? "w-14 h-14 justify-center bg-[#0a1810] border border-[rgba(212,165,116,0.4)] text-[var(--dawn-500)] rotate-90"
+            : "px-5 py-3.5 bg-[var(--dawn-500)] text-[var(--forest-950)] hover:scale-[1.04] hover:bg-[var(--dawn-400)]"
         }`}
       >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
+        {open ? (
+          <X size={22} />
+        ) : (
+          <>
+            <MessageCircle size={20} />
+            <span className="text-sm font-semibold tracking-tight whitespace-nowrap">
+              Chat to Rishi
+            </span>
+          </>
+        )}
       </button>
 
       {/* Panel */}

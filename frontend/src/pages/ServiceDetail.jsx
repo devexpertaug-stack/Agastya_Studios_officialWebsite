@@ -4,13 +4,14 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Quote, Layout, Sparkles } from "lu
 import Nav from "@/components/site/Nav";
 import Footer from "@/components/site/Footer";
 import Reveal from "@/components/site/Reveal";
-import { SERVICE_CATEGORIES } from "@/data/services";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { SITE } from "@/constants/testIds/site";
 
 export default function ServiceDetail() {
   const { slug } = useParams();
   const nav = useNavigate();
-  const cat = SERVICE_CATEGORIES.find((c) => c.slug === slug);
+  const categories = useServiceCategories();
+  const cat = categories.find((c) => c.slug === slug);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -34,7 +35,7 @@ export default function ServiceDetail() {
   }
 
   const Icon = cat.icon;
-  const others = SERVICE_CATEGORIES.filter((c) => c.slug !== slug).slice(0, 3);
+  const others = categories.filter((c) => c.slug !== slug).slice(0, 3);
 
   return (
     <div
