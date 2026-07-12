@@ -35,7 +35,7 @@ export default function Footer() {
             automation behind good brands — patient, useful, on brand.
           </p>
           <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--mist)] mt-4">
-            Kumaon → Everywhere
+            Garhwal → Everywhere
           </p>
         </div>
 

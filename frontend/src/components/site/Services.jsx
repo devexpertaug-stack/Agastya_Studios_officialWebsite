@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import Reveal from "@/components/site/Reveal";
 import { SITE } from "@/constants/testIds/site";
+import { api } from "@/lib/api";
 import { SERVICE_CATEGORIES } from "@/data/services";
 
-function ServiceCard({ cat, i }) {
+function ServiceCard({ cat, i, image }) {
   const Icon = cat.icon;
+  const cover = image || cat.image;
   return (
     <Reveal delay={60 * (i % 3)}>
       <Link
@@ -20,7 +22,7 @@ function ServiceCard({ cat, i }) {
         >
           <div className="relative aspect-[16/10] overflow-hidden">
             <img
-              src={cat.image}
+              src={cover}
               alt={cat.title}
               className="w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
               loading="lazy"
@@ -68,6 +70,15 @@ function ServiceCard({ cat, i }) {
 }
 
 export default function Services() {
+  const [categoryImages, setCategoryImages] = useState({});
+
+  useEffect(() => {
+    api
+      .get("/settings")
+      .then((r) => setCategoryImages(r.data?.category_images || {}))
+      .catch(() => {});
+  }, []);
+
   return (
     <section
       id="services"
@@ -112,7 +123,12 @@ export default function Services() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {SERVICE_CATEGORIES.map((cat, i) => (
-            <ServiceCard key={cat.slug} cat={cat} i={i} />
+            <ServiceCard
+              key={cat.slug}
+              cat={cat}
+              i={i}
+              image={categoryImages[cat.slug]}
+            />
           ))}
         </div>
       </div>

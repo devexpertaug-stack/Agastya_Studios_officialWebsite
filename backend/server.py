@@ -119,6 +119,7 @@ async def seed_settings():
             "founder_photo_url": "",
             "contact_email": "devexpertaug@gmail.com",
             "contact_whatsapp": "+917906411716",
+            "category_images": {},
             "updated_at": datetime.now(timezone.utc).isoformat(),
         })
         logger.info("Seeded site settings")
@@ -198,6 +199,9 @@ class SettingsUpdate(BaseModel):
     founder_photo_url: Optional[str] = None
     contact_email: Optional[EmailStr] = None
     contact_whatsapp: Optional[str] = None
+    # Map of service-category slug -> image URL / base64 data URL.
+    # Lets the admin override the default image shown for each capability.
+    category_images: Optional[dict] = None
 
 
 # ---------- Routes: health ----------

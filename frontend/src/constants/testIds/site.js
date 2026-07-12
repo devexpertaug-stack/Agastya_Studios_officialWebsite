@@ -74,6 +74,8 @@ export const SITE = {
   adminLogout: "admin-logout",
   adminProjectsTab: "admin-projects-tab",
   adminSettingsTab: "admin-settings-tab",
+  adminCategoriesTab: "admin-categories-tab",
   adminAddProject: "admin-add-project",
   adminSaveSettings: "admin-save-settings",
+  adminSaveCategories: "admin-save-categories",
 };

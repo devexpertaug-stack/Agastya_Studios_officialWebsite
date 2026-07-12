@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { SITE } from "@/constants/testIds/site";
 import { AgastyaLogo } from "@/components/site/Nav";
+import { SERVICE_CATEGORIES } from "@/data/services";
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -87,6 +88,13 @@ export default function AdminPage() {
             Projects
           </TabBtn>
           <TabBtn
+            testId={SITE.adminCategoriesTab}
+            active={tab === "categories"}
+            onClick={() => setTab("categories")}
+          >
+            Category Images
+          </TabBtn>
+          <TabBtn
             testId={SITE.adminSettingsTab}
             active={tab === "settings"}
             onClick={() => setTab("settings")}
@@ -95,7 +103,9 @@ export default function AdminPage() {
           </TabBtn>
         </div>
 
-        {tab === "projects" ? <ProjectsTab /> : <SettingsTab />}
+        {tab === "projects" && <ProjectsTab />}
+        {tab === "categories" && <CategoriesTab />}
+        {tab === "settings" && <SettingsTab />}
       </div>
     </div>
   );
@@ -375,6 +385,135 @@ function ProjectEditor({ initial, onClose, onSaved }) {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function CategoriesTab() {
+  const [images, setImages] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    api
+      .get("/settings")
+      .then((r) => setImages(r.data?.category_images || {}))
+      .catch(() => toast.error("Could not load category images"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const onFile = async (slug, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1_500_000) {
+      toast.error("Image too big. Please upload under 1.5MB (or resize).");
+      return;
+    }
+    const dataUrl = await fileToDataUrl(file);
+    setImages((m) => ({ ...m, [slug]: dataUrl }));
+  };
+
+  const resetOne = (slug) => {
+    setImages((m) => {
+      const next = { ...m };
+      delete next[slug];
+      return next;
+    });
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const { data } = await api.put("/settings", { category_images: images });
+      setImages(data?.category_images || {});
+      toast.success("Saved. Refresh the site to see the new images.");
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err?.response?.data?.detail));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-[var(--bone-100)]/60">
+        <Loader2 size={16} className="animate-spin" /> Loading…
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-serif-italic tracking-[-0.02em]">
+            Category images
+          </h1>
+          <p className="text-sm text-[var(--bone-100)]/60 mt-2 max-w-xl">
+            Change the cover image for each capability (E-commerce &amp; D2C,
+            Voice AI, and so on). Uploads appear on the homepage cards and the
+            capability pages. Leave one untouched to keep the default.
+          </p>
+        </div>
+        <button
+          data-testid={SITE.adminSaveCategories}
+          onClick={save}
+          disabled={saving}
+          className="btn-forest inline-flex items-center gap-2 disabled:opacity-70 self-start"
+        >
+          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          Save changes
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {SERVICE_CATEGORIES.map((cat) => {
+          const custom = images[cat.slug];
+          const preview = custom || cat.image;
+          return (
+            <div key={cat.slug} className="card-forest rounded-2xl overflow-hidden flex flex-col">
+              <div className="aspect-[16/10] bg-[#0a1810] relative">
+                {preview ? (
+                  <img src={preview} alt={cat.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ImageIcon size={24} className="text-[var(--mist)]" />
+                  </div>
+                )}
+                <span className="absolute top-3 left-3 text-[10px] uppercase tracking-[0.2em] px-2 py-1 rounded-full bg-[#06110b]/70 backdrop-blur-sm border border-[rgba(168,192,144,0.2)]">
+                  {custom ? "Custom" : "Default"}
+                </span>
+              </div>
+              <div className="p-5 flex-1 flex flex-col gap-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-serif-italic text-[var(--mist)] text-xs">/{cat.number}</span>
+                  <h3 className="text-lg font-serif-italic">{cat.title}</h3>
+                </div>
+                <label className="flex flex-col gap-2 mt-auto">
+                  <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--mist)]">
+                    Replace image (≤1.5MB)
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => onFile(cat.slug, e)}
+                    className="text-xs text-[var(--bone-100)]/70 file:mr-3 file:btn-ghost file:text-xs file:cursor-pointer"
+                  />
+                </label>
+                {custom && (
+                  <button
+                    type="button"
+                    onClick={() => resetOne(cat.slug)}
+                    className="text-xs inline-flex items-center gap-1.5 text-[var(--bone-100)]/60 hover:text-[var(--dawn-500)] transition-colors self-start"
+                  >
+                    <X size={13} /> Reset to default
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

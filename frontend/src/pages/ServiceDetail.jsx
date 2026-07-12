@@ -1,20 +1,72 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CheckCircle2, Quote, Layout, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Quote, Sparkles, Plus, TrendingUp } from "lucide-react";
 import Nav from "@/components/site/Nav";
 import Footer from "@/components/site/Footer";
 import Reveal from "@/components/site/Reveal";
+import { api } from "@/lib/api";
 import { SERVICE_CATEGORIES } from "@/data/services";
 import { SITE } from "@/constants/testIds/site";
+
+function AgentAccordion({ agent, index }) {
+  const [open, setOpen] = useState(false);
+  const title = typeof agent === "string" ? agent : agent.title;
+  const detail = typeof agent === "string" ? "" : agent.detail;
+
+  return (
+    <li className="rounded-xl border border-[rgba(168,192,144,0.12)] bg-[rgba(255,255,255,0.015)] overflow-hidden transition-all hover:border-[var(--dawn-500)]/40">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-start gap-4 p-5 text-left group"
+      >
+        <span className="font-serif-italic text-[var(--dawn-500)]/70 text-sm mt-0.5 w-6 flex-shrink-0">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="flex-1 text-[var(--bone-100)]/90 text-base md:text-lg leading-snug">
+          {title}
+        </span>
+        <Plus
+          size={18}
+          className={`text-[var(--moss-400)] mt-1 flex-shrink-0 transition-transform duration-300 ${
+            open ? "rotate-45 text-[var(--dawn-500)]" : "group-hover:text-[var(--dawn-500)]"
+          }`}
+        />
+      </button>
+      {detail && (
+        <div
+          className={`grid transition-all duration-300 ease-out ${
+            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <p className="px-5 pb-5 pl-[3.75rem] text-sm md:text-[15px] text-[var(--bone-100)]/70 leading-relaxed">
+              {detail}
+            </p>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+}
 
 export default function ServiceDetail() {
   const { slug } = useParams();
   const nav = useNavigate();
   const cat = SERVICE_CATEGORIES.find((c) => c.slug === slug);
+  const [categoryImages, setCategoryImages] = useState({});
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [slug]);
+
+  useEffect(() => {
+    api
+      .get("/settings")
+      .then((r) => setCategoryImages(r.data?.category_images || {}))
+      .catch(() => {});
+  }, []);
 
   if (!cat) {
     return (
@@ -34,7 +86,9 @@ export default function ServiceDetail() {
   }
 
   const Icon = cat.icon;
+  const heroImage = categoryImages[cat.slug] || cat.image;
   const others = SERVICE_CATEGORIES.filter((c) => c.slug !== slug).slice(0, 3);
+  const projects = cat.projects || [];
 
   return (
     <div
@@ -47,7 +101,7 @@ export default function ServiceDetail() {
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: `url(${cat.image})` }}
+          style={{ backgroundImage: `url(${heroImage})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#06110b]/70 via-[#06110b]/85 to-[#06110b]" />
         <div className="pointer-events-none absolute top-40 -right-40 w-[520px] h-[520px] rounded-full bg-[var(--dawn-500)]/12 blur-[140px]" />
@@ -88,7 +142,7 @@ export default function ServiceDetail() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Agents — expandable dropdowns explaining how each one works */}
       <section className="py-20 md:py-28 bg-[#0a1810] grain relative">
         <div className="relative max-w-6xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-12 gap-12">
           <div className="md:col-span-4">
@@ -99,18 +153,16 @@ export default function ServiceDetail() {
               <h2 className="text-4xl md:text-5xl leading-[1] tracking-[-0.03em] font-serif-italic">
                 Agents in this stack.
               </h2>
+              <p className="mt-6 text-sm text-[var(--bone-100)]/60 leading-relaxed">
+                Tap any agent to see exactly how it works for your customers.
+              </p>
             </Reveal>
           </div>
           <div className="md:col-span-8">
             <ul className="grid grid-cols-1 gap-4">
-              {cat.features.map((f, i) => (
-                <Reveal key={f} delay={i * 60}>
-                  <li className="flex items-start gap-4 p-5 rounded-xl border border-[rgba(168,192,144,0.12)] hover:border-[var(--dawn-500)]/50 transition-all bg-[rgba(255,255,255,0.015)] group">
-                    <CheckCircle2 size={18} className="text-[var(--moss-400)] mt-0.5 flex-shrink-0 group-hover:text-[var(--dawn-500)] transition-colors" />
-                    <span className="text-[var(--bone-100)]/85 text-base leading-relaxed">
-                      {f}
-                    </span>
-                  </li>
+              {cat.features.map((agent, i) => (
+                <Reveal key={typeof agent === "string" ? agent : agent.title} delay={i * 50}>
+                  <AgentAccordion agent={agent} index={i} />
                 </Reveal>
               ))}
             </ul>
@@ -148,42 +200,47 @@ export default function ServiceDetail() {
         </div>
       </section>
 
-      {/* Web extension */}
-      <section className="py-20 md:py-28 bg-[#0a1810] grain relative">
-        <div className="max-w-6xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-          <div className="md:col-span-5">
+      {/* Selected projects */}
+      {projects.length > 0 && (
+        <section className="py-20 md:py-28 bg-[#0a1810] grain relative">
+          <div className="relative max-w-6xl mx-auto px-6 md:px-10">
             <Reveal>
-              <div className="flex items-center gap-3 mb-6">
-                <Layout size={20} className="text-[var(--dawn-500)]" />
-                <span className="text-xs uppercase tracking-[0.32em] text-[var(--mist)]">
-                  Web-development layer
-                </span>
-              </div>
-              <h2 className="text-4xl md:text-5xl leading-[1] tracking-[-0.03em] mb-6">
-                <span className="font-serif-italic">The site,</span>{" "}
-                <span className="font-normal">included.</span>
+              <p className="text-xs uppercase tracking-[0.32em] text-[var(--mist)] mb-6">
+                Selected projects
+              </p>
+              <h2 className="text-4xl md:text-5xl leading-[1] tracking-[-0.03em] mb-14 max-w-2xl">
+                <span className="font-serif-italic">Work</span>{" "}
+                <span className="font-normal">we&rsquo;re proud of.</span>
               </h2>
             </Reveal>
-            <Reveal delay={100}>
-              <p className="text-[var(--bone-100)]/75 leading-relaxed">
-                {cat.web}
-              </p>
-            </Reveal>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {projects.map((p, i) => (
+                <Reveal key={p.title} delay={i * 90}>
+                  <article className="card-forest rounded-2xl p-8 h-full flex flex-col gap-4">
+                    {p.outcome && (
+                      <div className="inline-flex items-center gap-2 self-start rounded-full bg-[var(--dawn-500)]/12 border border-[var(--dawn-500)]/30 px-3 py-1 text-[var(--dawn-500)] text-xs font-medium">
+                        <TrendingUp size={13} /> {p.outcome}
+                      </div>
+                    )}
+                    <h3 className="text-xl md:text-2xl leading-snug tracking-[-0.01em] font-serif-italic">
+                      {p.title}
+                    </h3>
+                    {p.client && (
+                      <div className="text-xs uppercase tracking-[0.22em] text-[var(--mist)]">
+                        {p.client}
+                      </div>
+                    )}
+                    <p className="text-sm text-[var(--bone-100)]/70 leading-relaxed">
+                      {p.summary}
+                    </p>
+                  </article>
+                </Reveal>
+              ))}
+            </div>
           </div>
-          <div className="md:col-span-7">
-            <Reveal delay={150}>
-              <div className="relative rounded-2xl overflow-hidden border border-[rgba(168,192,144,0.15)] aspect-[16/10] group">
-                <img
-                  src={cat.image}
-                  alt={cat.title}
-                  className="w-full h-full object-cover transition-transform duration-[1600ms] group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#06110b]/70 via-transparent" />
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Testimonial + Case study */}
       <section className="py-20 md:py-28 bg-[#06110b]">
@@ -248,7 +305,7 @@ export default function ServiceDetail() {
               >
                 <div className="aspect-[16/10] overflow-hidden">
                   <img
-                    src={o.image}
+                    src={categoryImages[o.slug] || o.image}
                     alt={o.title}
                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                     loading="lazy"
