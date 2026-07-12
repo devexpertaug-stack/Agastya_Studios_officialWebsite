@@ -147,73 +147,81 @@ export default function Hero() {
         />
       </svg>
 
-      {/* Heading */}
-      <div className="absolute top-[16%] left-0 right-0 flex flex-col items-center text-center px-5 pointer-events-none z-50">
-        <div
-          className="hero-anim hero-fade inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(240,234,214,0.2)] bg-[rgba(240,234,214,0.05)] backdrop-blur-sm text-[11px] uppercase tracking-[0.28em] text-[var(--bone-100)]/80 mb-8"
-          style={{ animationDelay: "0.1s" }}
-        >
-          <Sparkles size={12} className="text-[var(--dawn-500)]" />
-          Agastya Studios — Uttarakhand → Everywhere
+      {/* Foreground content — flex column so the heading (top) and the bottom
+          notes never overlap, even on short desktop windows. */}
+      <div className="absolute inset-0 z-50 flex flex-col justify-between px-5 sm:px-8 md:px-14 pt-24 sm:pt-28 pb-10 sm:pb-14 pointer-events-none">
+        {/* Top: badge + heading */}
+        <div className="flex flex-col items-center text-center mt-[5%] sm:mt-[6%]">
+          <div
+            className="hero-anim hero-fade inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(240,234,214,0.2)] bg-[rgba(240,234,214,0.05)] backdrop-blur-sm text-[11px] uppercase tracking-[0.28em] text-[var(--bone-100)]/80 mb-6 sm:mb-8"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <Sparkles size={12} className="text-[var(--dawn-500)]" />
+            Agastya Studios — Uttarakhand → Everywhere
+          </div>
+
+          <h1 className="text-[var(--bone-100)] leading-[0.95] max-w-[18ch] mx-auto">
+            <span
+              data-testid={SITE.heroTitleLine1}
+              className="block font-serif-italic font-normal text-5xl sm:text-7xl md:text-8xl hero-anim hero-reveal"
+              style={{ letterSpacing: "-0.03em", animationDelay: "0.25s" }}
+            >
+              Forests hold
+            </span>
+            <span
+              data-testid={SITE.heroTitleLine2}
+              className="block font-normal text-5xl sm:text-7xl md:text-8xl -mt-1 hero-anim hero-reveal"
+              style={{ letterSpacing: "-0.06em", animationDelay: "0.42s" }}
+            >
+              the quiet intelligence.
+            </span>
+          </h1>
         </div>
 
-        <h1 className="text-[var(--bone-100)] leading-[0.95]">
-          <span
-            data-testid={SITE.heroTitleLine1}
-            className="block font-serif-italic font-normal text-5xl sm:text-7xl md:text-8xl hero-anim hero-reveal"
-            style={{ letterSpacing: "-0.03em", animationDelay: "0.25s" }}
+        {/* Bottom: quote (left) + copy/CTA (right) — laid out in flow so they
+            sit below the heading and can't collide with it. */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 sm:gap-10">
+          {/* Small quote */}
+          <div
+            className="hidden sm:block max-w-[280px] hero-anim hero-fade pointer-events-auto"
+            style={{ animationDelay: "0.7s" }}
           >
-            Forests hold
-          </span>
-          <span
-            data-testid={SITE.heroTitleLine2}
-            className="block font-normal text-5xl sm:text-7xl md:text-8xl -mt-1 hero-anim hero-reveal"
-            style={{ letterSpacing: "-0.06em", animationDelay: "0.42s" }}
-          >
-            the quiet intelligence.
-          </span>
-        </h1>
-      </div>
+            <p className="text-sm text-[var(--bone-100)]/75 leading-relaxed font-serif-italic">
+              &ldquo;Old pines don&rsquo;t hurry. They keep working while
+              everyone else sleeps.&rdquo;
+            </p>
+            <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[var(--mist)]">
+              — A grandmother in Garhwal
+            </p>
+          </div>
 
-      {/* Bottom-left small quote */}
-      <div
-        className="hidden sm:block absolute bottom-[18%] left-8 md:left-14 max-w-[280px] z-50 hero-anim hero-fade"
-        style={{ animationDelay: "0.7s" }}
-      >
-        <p className="text-sm text-[var(--bone-100)]/75 leading-relaxed font-serif-italic">
-          &ldquo;Old pines don&rsquo;t hurry. They keep working while everyone
-          else sleeps.&rdquo;
-        </p>
-        <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[var(--mist)]">
-          — A grandmother in Kumaon
-        </p>
-      </div>
-
-      {/* Bottom-right CTA + copy */}
-      <div
-        className="absolute bottom-[14%] sm:bottom-[18%] left-5 right-5 sm:left-auto sm:right-10 md:right-14 max-w-full sm:max-w-[320px] flex flex-col items-start gap-4 sm:gap-5 z-50 hero-anim hero-fade"
-        style={{ animationDelay: "0.85s" }}
-      >
-        <p className="text-xs sm:text-sm text-[var(--bone-100)]/80 leading-relaxed">
-          We are a small Uttarakhand-rooted studio building AI agents,
-          websites and design that make brands feel patient, considered — and
-          twice as productive.
-        </p>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            data-testid={SITE.heroCta}
-            onClick={() => scrollTo("services")}
-            className="btn-forest flex items-center gap-2"
+          {/* CTA + copy */}
+          <div
+            className="w-full sm:w-auto sm:max-w-[320px] flex flex-col items-start gap-4 sm:gap-5 hero-anim hero-fade pointer-events-auto"
+            style={{ animationDelay: "0.85s" }}
           >
-            See our craft <ArrowRight size={16} />
-          </button>
-          <button
-            data-testid={SITE.heroSecondaryCta}
-            onClick={() => scrollTo("contact")}
-            className="btn-ghost text-sm"
-          >
-            Book a scoping call
-          </button>
+            <p className="text-xs sm:text-sm text-[var(--bone-100)]/80 leading-relaxed">
+              We are a small Uttarakhand-rooted studio building AI agents,
+              websites and design that make brands feel patient, considered —
+              and twice as productive.
+            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                data-testid={SITE.heroCta}
+                onClick={() => scrollTo("services")}
+                className="btn-forest flex items-center gap-2"
+              >
+                See our craft <ArrowRight size={16} />
+              </button>
+              <button
+                data-testid={SITE.heroSecondaryCta}
+                onClick={() => scrollTo("contact")}
+                className="btn-ghost text-sm"
+              >
+                Book a scoping call
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

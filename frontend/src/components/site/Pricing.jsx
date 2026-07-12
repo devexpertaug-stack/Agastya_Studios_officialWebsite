@@ -74,12 +74,9 @@ export default function Pricing() {
                   </span>
                 </div>
 
-                <h3 className="text-4xl md:text-5xl mb-3">
+                <h3 className="text-4xl md:text-5xl mb-5">
                   <span className="font-serif-italic">{t.name}</span>
                 </h3>
-                <div className="flex items-baseline gap-2 mb-5">
-                  <span className="text-3xl font-medium">{t.price}</span>
-                </div>
                 <p className="text-[var(--bone-100)]/70 text-sm leading-relaxed mb-8">
                   {t.tagline}
                 </p>
@@ -111,9 +108,8 @@ export default function Pricing() {
 
         <Reveal delay={280}>
           <p className="mt-14 text-center text-xs text-[var(--mist)]">
-            Prices in Indian Rupees, roughly. All packages are quoted after a
-            free 30-minute scoping call — because your context matters more
-            than a menu.
+            Every package is quoted after a free 30-minute scoping call —
+            because your context matters more than a menu.
           </p>
         </Reveal>
       </div>
