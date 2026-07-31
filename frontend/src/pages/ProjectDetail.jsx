@@ -5,6 +5,7 @@ import Nav from "@/components/site/Nav";
 import Footer from "@/components/site/Footer";
 import Reveal from "@/components/site/Reveal";
 import { api } from "@/lib/api";
+import { REAL_PROJECTS, getRealProject } from "@/data/projects";
 import { SITE } from "@/constants/testIds/site";
 
 export default function ProjectDetail() {
@@ -19,13 +20,29 @@ export default function ProjectDetail() {
     let alive = true;
     setLoading(true);
     setError(false);
+
+    const applyStaticFallback = () => {
+      const p = getRealProject(id);
+      if (p) {
+        setProject(p);
+        setOthers(REAL_PROJECTS.filter((x) => x.id !== id).slice(0, 3));
+        setError(false);
+      } else {
+        setError(true);
+      }
+    };
+
     Promise.all([api.get(`/projects/${id}`), api.get("/projects")])
       .then(([one, list]) => {
         if (!alive) return;
-        setProject(one.data);
-        setOthers((list.data || []).filter((p) => p.id !== id).slice(0, 3));
+        if (one?.data) {
+          setProject(one.data);
+          setOthers((list.data || []).filter((p) => p.id !== id).slice(0, 3));
+        } else {
+          applyStaticFallback();
+        }
       })
-      .catch(() => alive && setError(true))
+      .catch(() => alive && applyStaticFallback()) // backend offline → show real static project
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
