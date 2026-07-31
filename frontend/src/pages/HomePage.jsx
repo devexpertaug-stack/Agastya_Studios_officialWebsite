@@ -1,10 +1,12 @@
 import React from "react";
 import Nav from "@/components/site/Nav";
 import Hero from "@/components/site/Hero";
+import FeatureShowcase from "@/components/site/FeatureShowcase";
+import WorkScroll from "@/components/site/WorkScroll";
 import About from "@/components/site/About";
-import Services from "@/components/site/Services";
 import Testimonials from "@/components/site/Testimonials";
 import Pricing from "@/components/site/Pricing";
+import FAQ from "@/components/site/FAQ";
 import Contact from "@/components/site/Contact";
 import Footer from "@/components/site/Footer";
 
@@ -16,10 +18,12 @@ export default function HomePage() {
     >
       <Nav />
       <Hero />
+      <FeatureShowcase />
+      <WorkScroll />
       <About />
-      <Services />
       <Testimonials />
       <Pricing />
+      <FAQ />
       <Contact />
       <Footer />
     </div>

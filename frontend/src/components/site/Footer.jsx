@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Instagram, Linkedin, ArrowUpRight } from "lucide-react";
+import { Instagram, Linkedin, ArrowUpRight, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import { SITE } from "@/constants/testIds/site";
 import { AgastyaLogo } from "@/components/site/Nav";
-import { api } from "@/lib/api";
+import { api, formatApiErrorDetail } from "@/lib/api";
 
 export default function Footer() {
   const [settings, setSettings] = useState(null);
+  const [news, setNews] = useState("");
+  const [sending, setSending] = useState(false);
   useEffect(() => {
     api.get("/settings").then((r) => setSettings(r.data)).catch(() => {});
   }, []);
@@ -14,12 +17,62 @@ export default function Footer() {
   const whatsapp = settings?.contact_whatsapp || "+917906411716";
   const waNum = whatsapp.replace(/[^0-9]/g, "");
 
+  const subscribe = async (e) => {
+    e.preventDefault();
+    if (!news.trim()) return;
+    setSending(true);
+    try {
+      await api.post("/contact", {
+        name: "Newsletter subscriber",
+        email: news.trim(),
+        interest: "Newsletter",
+        message: "Requested to join the Agastya Studios newsletter.",
+      });
+      toast.success("You're on the list. We send rarely, and only good things.");
+      setNews("");
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err?.response?.data?.detail) || "Could not subscribe. Try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <footer
       data-testid={SITE.footer}
       className="relative bg-[#06110b] text-[var(--bone-100)] border-t border-[rgba(168,192,144,0.12)] overflow-hidden"
     >
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-[var(--moss-400)]/8 blur-[160px]" />
+
+      {/* Newsletter */}
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10 pt-20 md:pt-28 pb-16 border-b border-[rgba(168,192,144,0.1)]">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+          <div className="md:col-span-7">
+            <h2 className="font-display text-4xl sm:text-5xl md:text-6xl leading-[0.95]">
+              Let&apos;s build something <span className="text-lime">quiet,</span> but powerful.
+            </h2>
+          </div>
+          <div className="md:col-span-5">
+            <p className="text-sm text-[var(--bone-100)]/60 mb-4">
+              Occasional notes on AI, craft and building in the hills. No noise.
+            </p>
+            <form onSubmit={subscribe} className="flex items-center gap-2">
+              <input
+                type="email"
+                required
+                value={news}
+                onChange={(e) => setNews(e.target.value)}
+                placeholder="you@company.com"
+                className="field-input flex-1"
+                aria-label="Email address"
+              />
+              <button type="submit" disabled={sending} className="btn-pill magnetic disabled:opacity-60">
+                {sending ? "..." : <>Join <ArrowRight size={15} /></>}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10 py-20 grid grid-cols-1 md:grid-cols-12 gap-10">
         <div className="md:col-span-5 flex flex-col gap-5">

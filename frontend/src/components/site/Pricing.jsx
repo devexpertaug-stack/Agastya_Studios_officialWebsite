@@ -29,10 +29,8 @@ export default function Pricing() {
               </p>
             </Reveal>
             <Reveal delay={80}>
-              <h2 className="text-5xl sm:text-6xl md:text-7xl leading-[0.95] tracking-[-0.04em]">
-                <span className="font-serif-italic">Grow at</span>
-                <br />
-                <span className="font-normal">forest pace.</span>
+              <h2 className="font-display text-5xl sm:text-6xl md:text-7xl leading-[0.92]">
+                Grow at <span className="text-lime">forest pace.</span>
               </h2>
             </Reveal>
           </div>

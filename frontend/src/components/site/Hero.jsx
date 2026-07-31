@@ -1,245 +1,229 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, TreePine, MessageCircle, TrendingUp, MapPin } from "lucide-react";
 import { SITE } from "@/constants/testIds/site";
-import { ArrowRight, TreePine } from "lucide-react";
 
-// Hero backgrounds — misty Garhwal pines → ice-capped Nanda Devi (Uttarakhand)
-const BG_IMAGE_1 =
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=85&auto=format&fit=crop";
-// Ice-capped Nanda Devi / Himalayan snow range
-const BG_IMAGE_2 =
-  "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=1920&q=85&auto=format&fit=crop";
+const TOOLS = [
+  "React", "n8n", "OpenAI", "Shopify", "Twilio", "WhatsApp",
+  "Selenium", "Python", "MongoDB", "Framer", "Wix", "Pine Script",
+];
 
-const SPOTLIGHT_R = 280;
+function scrollToId(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
-function RevealLayer({ image, cursorX, cursorY }) {
-  const canvasRef = useRef(null);
-  const revealRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const size = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    size();
-    window.addEventListener("resize", size);
-    return () => window.removeEventListener("resize", size);
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const reveal = revealRef.current;
-    if (!canvas || !reveal) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const grad = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, SPOTLIGHT_R);
-    grad.addColorStop(0, "rgba(255,255,255,1)");
-    grad.addColorStop(0.4, "rgba(255,255,255,1)");
-    grad.addColorStop(0.6, "rgba(255,255,255,0.75)");
-    grad.addColorStop(0.75, "rgba(255,255,255,0.4)");
-    grad.addColorStop(0.88, "rgba(255,255,255,0.12)");
-    grad.addColorStop(1, "rgba(255,255,255,0)");
-
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(cursorX, cursorY, SPOTLIGHT_R, 0, Math.PI * 2);
-    ctx.fill();
-
-    const url = canvas.toDataURL();
-    reveal.style.maskImage = `url(${url})`;
-    reveal.style.webkitMaskImage = `url(${url})`;
-    reveal.style.maskSize = "100% 100%";
-    reveal.style.webkitMaskSize = "100% 100%";
-    reveal.style.maskRepeat = "no-repeat";
-    reveal.style.webkitMaskRepeat = "no-repeat";
-  }, [cursorX, cursorY]);
-
+/* One floating glass card in the hero cluster */
+function FloatCard({ className = "", delay = 0, rot = 0, depth = 30, progress, children }) {
+  const y = useTransform(progress, [0, 1], [0, -depth]);
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ display: "none" }}
-      />
+    <motion.div style={{ y }} className={`absolute ${className}`}>
       <div
-        ref={revealRef}
-        className="absolute inset-0 bg-center bg-cover bg-no-repeat z-30 pointer-events-none"
-        style={{ backgroundImage: `url(${image})` }}
-        aria-hidden="true"
-      />
-    </>
+        className="floaty"
+        style={{ animationDelay: `${delay}s`, ["--rot"]: `${rot}deg` }}
+      >
+        {children}
+      </div>
+    </motion.div>
   );
 }
 
 export default function Hero() {
-  const mouse = useRef({ x: -999, y: -999 });
-  const smooth = useRef({ x: -999, y: -999 });
-  const rafRef = useRef(null);
-  const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
-
-  // Refs for smooth parallax (updated via RAF-throttled scroll — no React re-render)
-  const bgRef = useRef(null);
-  const ridgeRef = useRef(null);
-
-  useEffect(() => {
-    const onMove = (e) => {
-      mouse.current.x = e.clientX;
-      mouse.current.y = e.clientY;
-    };
-    window.addEventListener("mousemove", onMove);
-
-    const tick = () => {
-      smooth.current.x += (mouse.current.x - smooth.current.x) * 0.1;
-      smooth.current.y += (mouse.current.y - smooth.current.y) * 0.1;
-      setCursorPos({ x: smooth.current.x, y: smooth.current.y });
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-
-    // RAF-throttled parallax scroll (avoids React re-renders — no jitter)
-    let scrollTicking = false;
-    const onScroll = () => {
-      if (scrollTicking) return;
-      scrollTicking = true;
-      requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (bgRef.current) {
-          bgRef.current.style.transform = `translate3d(0, ${y * 0.25}px, 0)`;
-        }
-        if (ridgeRef.current) {
-          ridgeRef.current.style.transform = `translate3d(0, ${y * -0.08}px, 0)`;
-        }
-        scrollTicking = false;
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("scroll", onScroll);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
-
-  const scrollTo = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  // Whole cluster drifts up slightly as you scroll (parallax depth)
+  const clusterY = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, 60]);
 
   return (
     <section
+      ref={ref}
       data-testid={SITE.heroSection}
-      className="relative w-full overflow-hidden h-screen bg-[#06110b]"
-      style={{ height: "100dvh" }}
+      className="relative min-h-[100svh] overflow-hidden bg-[#06110b] text-[var(--bone-100)] pt-28 md:pt-24"
     >
-      {/* Base image with Ken Burns zoom (parallax via ref) */}
-      <div
-        ref={bgRef}
-        className="absolute inset-0 z-10 hero-zoom parallax-layer"
-        style={{ willChange: "transform" }}
-      >
-        <div
-          className="absolute inset-0 bg-center bg-cover bg-no-repeat"
-          style={{ backgroundImage: `url(${BG_IMAGE_1})` }}
-          aria-hidden="true"
-        />
-      </div>
+      {/* Backdrop: grid + warm/lime glow */}
+      <div className="pointer-events-none absolute inset-0 grid-bg grid-bg-fade opacity-70" />
+      <div className="pointer-events-none absolute -top-24 right-[-10%] w-[620px] h-[620px] rounded-full bg-[var(--lime-400)]/[0.06] blur-[150px]" />
+      <div className="pointer-events-none absolute bottom-[-20%] left-[-10%] w-[560px] h-[560px] rounded-full bg-[var(--dawn-500)]/[0.05] blur-[150px]" />
 
-      {/* Deep forest tint over base */}
-      <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-[rgba(6,17,11,0.55)] via-[rgba(6,17,11,0.35)] to-[rgba(6,17,11,0.95)]" />
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center min-h-[calc(100svh-8rem)]">
+        {/* Left: copy */}
+        <motion.div style={{ y: textY }} className="lg:col-span-6 relative z-10">
+          <div className="hero-anim hero-fade inline-flex items-center gap-2 rounded-full border border-[rgba(240,234,214,0.16)] bg-[rgba(240,234,214,0.04)] px-4 py-1.5 text-[11px] uppercase tracking-[0.28em] text-[var(--mist)]" style={{ animationDelay: "0.05s" }}>
+            <TreePine size={12} className="text-[var(--lime-400)]" />
+            Garhwal, Uttarakhand
+          </div>
 
-      {/* Reveal layer (Nanda Devi snow peaks) */}
-      <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
+          <h1 className="mt-6 font-display font-display-tight text-[15vw] leading-[0.86] sm:text-7xl md:text-8xl">
+            <span
+              data-testid={SITE.heroTitleLine1}
+              className="block hero-anim hero-reveal"
+              style={{ animationDelay: "0.12s" }}
+            >
+              Design-led
+            </span>
+            <span
+              data-testid={SITE.heroTitleLine2}
+              className="block text-lime hero-anim hero-reveal"
+              style={{ animationDelay: "0.24s" }}
+            >
+              Automation.
+            </span>
+          </h1>
 
-      {/* Ridge silhouette bottom decoration (ref-driven parallax) */}
-      <div
-        ref={ridgeRef}
-        className="absolute bottom-0 left-0 right-0 z-40 pointer-events-none"
-        style={{ willChange: "transform" }}
-      >
-        <svg
-          viewBox="0 0 1440 200"
-          preserveAspectRatio="none"
-          className="w-full"
-          style={{ height: "180px" }}
-        >
-          <path
-            d="M0 200 L0 130 L100 90 L200 120 L320 60 L430 100 L560 40 L680 80 L820 30 L960 90 L1100 60 L1240 110 L1360 70 L1440 100 L1440 200 Z"
-            fill="#06110b"
-            opacity="0.92"
-          />
-        </svg>
-      </div>
+          <p
+            className="mt-7 max-w-lg text-base sm:text-lg leading-relaxed text-[var(--bone-100)]/70 hero-anim hero-fade"
+            style={{ animationDelay: "0.36s" }}
+          >
+            Agastya Studios designs, builds and runs the AI agents, websites and
+            brands behind modern businesses — patient, useful, and unmistakably
+            yours.
+          </p>
 
-      {/* Heading — placed higher so it doesn't collide with bottom copy */}
-      <div className="absolute top-[15%] sm:top-[18%] left-0 right-0 flex flex-col items-center text-center px-5 pointer-events-none z-50">
-        <div
-          className="hero-anim hero-fade inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(240,234,214,0.2)] bg-[rgba(240,234,214,0.05)] backdrop-blur-sm text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[var(--bone-100)]/80 mb-6 sm:mb-8"
-          style={{ animationDelay: "0.1s" }}
-        >
-          <TreePine size={12} className="text-[var(--dawn-500)]" />
-          Agastya Studios — Garhwal, Uttarakhand
+          <div
+            className="mt-9 flex flex-wrap items-center gap-4 hero-anim hero-fade"
+            style={{ animationDelay: "0.48s" }}
+          >
+            <button
+              data-testid={SITE.heroCta}
+              onClick={() => scrollToId("contact")}
+              className="btn-pill magnetic"
+            >
+              Start a project <ArrowRight size={16} />
+            </button>
+            <button
+              data-testid={SITE.heroSecondaryCta}
+              onClick={() => scrollToId("work")}
+              className="btn-ghost magnetic"
+            >
+              See our work
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Right: floating card cluster */}
+        <div className="lg:col-span-6 relative h-[420px] sm:h-[500px] lg:h-[560px]">
+          <motion.div style={{ y: clusterY }} className="absolute inset-0">
+            {/* Big analytics card */}
+            <FloatCard
+              progress={scrollYProgress}
+              delay={0}
+              rot={-3}
+              depth={20}
+              className="left-2 top-6 w-[280px] sm:w-[340px]"
+            >
+              <div className="glass-card rounded-2xl p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--mist)]">Recovered revenue</p>
+                    <p className="mt-1 text-2xl font-display text-lime">+38%</p>
+                  </div>
+                  <TrendingUp size={20} className="text-[var(--lime-400)]" />
+                </div>
+                <svg viewBox="0 0 300 90" className="mt-4 w-full h-16" preserveAspectRatio="none">
+                  <polyline
+                    points="0,70 40,60 80,64 120,40 160,48 200,26 240,32 300,10"
+                    fill="none"
+                    stroke="var(--lime-400)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <div className="mt-3 flex gap-2">
+                  <span className="text-[10px] rounded-full bg-[rgba(200,242,106,0.12)] text-[var(--lime-400)] px-2 py-0.5">60 days</span>
+                  <span className="text-[10px] rounded-full bg-[rgba(240,234,214,0.06)] text-[var(--mist)] px-2 py-0.5">Cart agent</span>
+                </div>
+              </div>
+            </FloatCard>
+
+            {/* Rishi chat card */}
+            <FloatCard
+              progress={scrollYProgress}
+              delay={1.2}
+              rot={4}
+              depth={44}
+              className="right-0 top-0 w-[230px] sm:w-[260px]"
+            >
+              <div className="glass-card rounded-2xl p-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-full bg-[var(--lime-400)] text-[#0b1a0c] grid place-items-center">
+                    <MessageCircle size={14} />
+                  </span>
+                  <span className="text-sm font-semibold">Rishi</span>
+                  <span className="ml-auto w-2 h-2 rounded-full bg-[var(--lime-400)]" />
+                </div>
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs bg-[rgba(240,234,214,0.06)] rounded-2xl rounded-tl-sm px-3 py-2 text-[var(--bone-100)]/80">
+                    Want a scoping call this week?
+                  </p>
+                  <p className="text-xs bg-[rgba(200,242,106,0.14)] text-[var(--bone-100)] rounded-2xl rounded-tr-sm px-3 py-2 ml-6">
+                    Yes — Thursday works ✨
+                  </p>
+                </div>
+              </div>
+            </FloatCard>
+
+            {/* Leads / transactions card */}
+            <FloatCard
+              progress={scrollYProgress}
+              delay={0.6}
+              rot={-2}
+              depth={64}
+              className="right-6 bottom-2 w-[250px] sm:w-[290px]"
+            >
+              <div className="glass-card rounded-2xl p-4">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--mist)]">New leads today</p>
+                <div className="mt-3 space-y-2.5">
+                  {[
+                    ["Maruti Eye Care", "Dehradun"],
+                    ["KK LEE", "Footwear"],
+                    ["Saluja Realtors", "Property"],
+                  ].map(([n, t]) => (
+                    <div key={n} className="flex items-center gap-2.5">
+                      <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[var(--moss-400)] to-[var(--forest-500)]" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate">{n}</p>
+                        <p className="text-[10px] text-[var(--mist)] truncate">{t}</p>
+                      </div>
+                      <ArrowRight size={12} className="ml-auto text-[var(--lime-400)]" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FloatCard>
+
+            {/* Small location chip */}
+            <FloatCard
+              progress={scrollYProgress}
+              delay={1.8}
+              rot={6}
+              depth={30}
+              className="left-8 bottom-6 hidden sm:block"
+            >
+              <div className="glass-card rounded-full px-3 py-2 flex items-center gap-2">
+                <MapPin size={13} className="text-[var(--dawn-500)]" />
+                <span className="text-[11px] text-[var(--bone-100)]/80">Made in the hills</span>
+              </div>
+            </FloatCard>
+          </motion.div>
         </div>
-
-        <h1 className="text-[var(--bone-100)] leading-[0.95] max-w-[95vw]">
-          <span
-            data-testid={SITE.heroTitleLine1}
-            className="block font-serif-italic font-normal text-[3rem] sm:text-6xl md:text-7xl lg:text-[6.5rem] hero-anim hero-reveal"
-            style={{ letterSpacing: "-0.03em", animationDelay: "0.25s" }}
-          >
-            Forests hold
-          </span>
-          <span
-            data-testid={SITE.heroTitleLine2}
-            className="block font-normal text-[3rem] sm:text-6xl md:text-7xl lg:text-[6.5rem] -mt-1 hero-anim hero-reveal"
-            style={{ letterSpacing: "-0.06em", animationDelay: "0.42s" }}
-          >
-            the quiet intelligence.
-          </span>
-        </h1>
       </div>
 
-      {/* Bottom-left quote (hidden on small screens to avoid overlap) */}
-      <div
-        className="hidden lg:block absolute bottom-[10%] left-8 xl:left-14 max-w-[260px] z-50 hero-anim hero-fade"
-        style={{ animationDelay: "0.7s" }}
-      >
-        <p className="text-sm text-[var(--bone-100)]/75 leading-relaxed font-serif-italic">
-          &ldquo;Old pines don&rsquo;t hurry. They keep working while everyone
-          else sleeps.&rdquo;
-        </p>
-        <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[var(--mist)]">
-          — A grandmother in Garhwal
-        </p>
-      </div>
-
-      {/* Bottom-right CTA + copy — pushed further down + smaller on md */}
-      <div
-        className="absolute bottom-[8%] sm:bottom-[10%] left-5 right-5 lg:left-auto lg:right-10 xl:right-14 max-w-full lg:max-w-[300px] flex flex-col items-start gap-3 sm:gap-4 z-50 hero-anim hero-fade"
-        style={{ animationDelay: "0.85s" }}
-      >
-        <p className="hidden sm:block text-xs sm:text-sm text-[var(--bone-100)]/80 leading-relaxed">
-          A small Garhwal-rooted studio building AI agents, websites and design
-          that make brands feel patient — and twice as productive.
-        </p>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            data-testid={SITE.heroCta}
-            onClick={() => scrollTo("services")}
-            className="btn-forest flex items-center gap-2 magnetic"
-          >
-            See our craft <ArrowRight size={16} />
-          </button>
-          <button
-            data-testid={SITE.heroSecondaryCta}
-            onClick={() => scrollTo("contact")}
-            className="btn-ghost text-sm magnetic"
-          >
-            Book a scoping call
-          </button>
+      {/* Tech marquee */}
+      <div className="relative border-t border-[rgba(240,234,214,0.08)] py-5 marquee-mask">
+        <div className="marquee-track gap-10">
+          {[...TOOLS, ...TOOLS].map((t, i) => (
+            <span
+              key={i}
+              className="text-sm uppercase tracking-[0.24em] text-[var(--bone-100)]/40 whitespace-nowrap"
+            >
+              {t} <span className="text-[var(--lime-400)]/50">◦</span>
+            </span>
+          ))}
         </div>
       </div>
     </section>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,6 +8,16 @@
 .font-serif-italic { font-family: 'Cormorant Garamond', 'Playfair Display', serif; font-style: italic; }
 .font-serif       { font-family: 'Cormorant Garamond', 'Playfair Display', serif; }
 .font-playfair    { font-family: 'Cormorant Garamond', 'Playfair Display', serif; font-style: italic; }
+
+/* Wide, bold display face for headlines (matches the reference's kinetic type) */
+.font-display {
+    font-family: 'Archivo', 'Inter', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 0.92;
+}
+.font-display-tight { letter-spacing: -0.005em; line-height: 0.9; }
 
 body {
     margin: 0;
@@ -45,6 +55,11 @@ body {
     --dawn-400: #e8be92;
     --bone-100: #f0ead6;
     --mist: rgba(240, 234, 214, 0.65);
+
+    /* Vibrant accents (kinetic-reference energy, still forest-native) */
+    --lime-400: #c8f26a;   /* fresh shoot — primary highlight */
+    --lime-500: #b6e84f;
+    --sun-400: #f2c94c;    /* warm sun — secondary accent */
 
     --background: 120 30% 6%;
     --foreground: 45 47% 90%;
@@ -257,3 +272,79 @@ body.cursor-hidden .cursor-dot { opacity: 0; }
 /* Prose */
 .prose-forest p { color: rgba(240,234,214,0.78); line-height: 1.75; margin-bottom: 1.1em; font-size: 1.02rem; }
 .prose-forest p:last-child { margin-bottom: 0; }
+
+
+/* ============================================================
+   Kinetic redesign utilities (reference-inspired)
+   ============================================================ */
+
+/* Subtle blueprint grid overlay used on dark sections */
+.grid-bg {
+    background-image:
+        linear-gradient(rgba(200, 242, 106, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200, 242, 106, 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+}
+.grid-bg-fade {
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 75%);
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 75%);
+}
+
+/* Idle bob for floating hero cards (staggered via inline animation-delay) */
+@keyframes bob {
+    0%   { transform: translateY(0) rotate(var(--rot, 0deg)); }
+    50%  { transform: translateY(-14px) rotate(var(--rot, 0deg)); }
+    100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+}
+.floaty { animation: bob 6s ease-in-out infinite; will-change: transform; }
+
+/* Marquee (logo / tech strip) */
+@keyframes marquee-x {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-x 28s linear infinite;
+}
+.marquee-mask {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* Bright pill CTA (matches the reference's punchy accent button) */
+.btn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--lime-400);
+    color: #0b1a0c;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    padding: 14px 30px;
+    border-radius: 999px;
+    transition: transform .3s cubic-bezier(0.16,1,0.3,1), box-shadow .3s ease, background .3s ease;
+}
+.btn-pill:hover {
+    background: var(--lime-500);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px -12px rgba(200, 242, 106, 0.45);
+}
+.btn-pill:active { transform: scale(0.97); }
+
+/* Glass card used in floating hero cluster + mockups */
+.glass-card {
+    background: linear-gradient(180deg, rgba(20,30,22,0.9), rgba(10,18,12,0.92));
+    border: 1px solid rgba(240,234,214,0.10);
+    box-shadow: 0 40px 90px -40px rgba(0,0,0,0.9), 0 1px 0 0 rgba(240,234,214,0.05) inset;
+    -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+}
+
+.text-lime { color: var(--lime-400); }
+
+@media (prefers-reduced-motion: reduce) {
+    .floaty { animation: none; }
+    .marquee-track { animation: none; }
+}
