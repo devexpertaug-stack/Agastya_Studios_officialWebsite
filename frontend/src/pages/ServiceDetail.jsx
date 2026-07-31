@@ -51,7 +51,7 @@ export default function ServiceDetail() {
           style={{ backgroundImage: `url(${cat.image})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#06110b]/70 via-[#06110b]/85 to-[#06110b]" />
-        <div className="pointer-events-none absolute top-40 -right-40 w-[520px] h-[520px] rounded-full bg-[var(--dawn-500)]/12 blur-[140px]" />
+        <div className="pointer-events-none absolute top-40 -right-40 w-[380px] h-[380px] rounded-full bg-[var(--dawn-500)]/[0.05] blur-[120px]" />
 
         <div className="relative max-w-6xl mx-auto px-6 md:px-10">
           <button

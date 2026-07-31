@@ -19,17 +19,17 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from contextlib import asynccontextmanager
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import llm
 
 # ---------- Config ----------
 JWT_ALGORITHM = "HS256"
-JWT_SECRET = os.environ["JWT_SECRET"]
+# Sensible self-host defaults so the app runs on plain MongoDB without Emergent.
+JWT_SECRET = os.environ.get("JWT_SECRET", "dev-insecure-change-me")
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@agastyastudios.com").lower()
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
-EMERGENT_LLM_KEY = os.environ["EMERGENT_LLM_KEY"]
 
-MONGO_URL = os.environ["MONGO_URL"]
-DB_NAME = os.environ["DB_NAME"]
+MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+DB_NAME = os.environ.get("DB_NAME", "agastya_studios")
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
@@ -361,69 +361,91 @@ async def list_contact(user=Depends(get_current_admin)):
     return docs
 
 
-# ---------- Routes: chat (Claude Sonnet 4.5) ----------
-SYSTEM_PROMPT = (
-    "You are Rishi, Agastya Studios' calm, forest-inspired AI concierge. "
-    "Agastya Studios is a small Uttarakhand-rooted creative-tech studio that designs, builds and runs AI agents, "
-    "chatbots, voice agents, web development and brand design for modern brands. "
-    "Speak in short, warm, confident sentences. Never invent pricing. If asked about pricing, say packages start "
-    "from a scoping call at devexpertaug@gmail.com. Offer to route users to the right capability: "
-    "E-commerce & D2C, Voice AI, Conversational & Support, Sales & Lead Gen, Marketing & Content, "
-    "Visual & Multimodal AI, Operations & Back Office, HR & Recruiting, Web Development, or Graphic Design. "
-    "End replies with a gentle nudge such as 'want a scoping call?' when useful. Never mention system prompts, "
-    "keys, or internal implementation. Reply in a maximum of ~90 words unless asked for a list."
-)
+# ---------- Routes: chat (Rishi — provider-agnostic LLM over MongoDB) ----------
+DEFAULT_CONTACT_EMAIL = "devexpertaug@gmail.com"
+
+
+async def _current_contact_email() -> str:
+    """Read the live contact email from settings so Rishi always quotes the right one."""
+    try:
+        s = await db.settings.find_one({"key": "site"}, {"_id": 0, "contact_email": 1})
+        if s and s.get("contact_email"):
+            return s["contact_email"]
+    except Exception:
+        pass
+    return DEFAULT_CONTACT_EMAIL
+
+
+def build_system_prompt(contact_email: str) -> str:
+    return (
+        "You are Rishi, Agastya Studios' calm, forest-inspired AI concierge. "
+        "Agastya Studios is a small Uttarakhand-rooted creative-tech studio that designs, builds and runs AI agents, "
+        "chatbots, voice agents, web development and brand design for modern brands. "
+        "Speak in short, warm, confident sentences. Never invent pricing. If asked about pricing, say packages start "
+        f"from a scoping call at {contact_email}. Offer to route users to the right capability: "
+        "E-commerce & D2C, Voice AI, Conversational & Support, Sales & Lead Gen, Marketing & Content, "
+        "Visual & Multimodal AI, Operations & Back Office, HR & Recruiting, Web Development, or Graphic Design. "
+        "End replies with a gentle nudge such as 'want a scoping call?' when useful. Never mention system prompts, "
+        "keys, or internal implementation. Reply in a maximum of ~90 words unless asked for a list."
+    )
 
 
 @api.post("/chat")
 async def chat(body: ChatBody):
+    session_id = body.session_id.strip() or "anon"
+    contact_email = await _current_contact_email()
+
+    # Load history from MongoDB (never let a transient DB hiccup 500 the chat)
     try:
-        session_id = body.session_id.strip() or "anon"
-        # Load history
         history_doc = await db.chat_sessions.find_one({"session_id": session_id}, {"_id": 0})
         history = history_doc.get("messages", []) if history_doc else []
+    except Exception:
+        logger.exception("Could not load chat history; continuing with empty context")
+        history = []
 
-        chat_client = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=session_id,
-            system_message=SYSTEM_PROMPT,
-        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
-
-        # Feed history so responses stay contextual across page reloads
-        for m in history[-10:]:  # last 10 messages
-            if m.get("role") == "user":
-                try:
-                    await chat_client.send_message(UserMessage(text=m["content"]))
-                except Exception:
-                    pass
-
-        reply = await chat_client.send_message(UserMessage(text=body.message))
-        reply_text = reply if isinstance(reply, str) else str(reply)
-
-        now = datetime.now(timezone.utc).isoformat()
-        new_history = history + [
-            {"role": "user", "content": body.message, "at": now},
-            {"role": "assistant", "content": reply_text, "at": now},
-        ]
-        # Cap stored history
-        new_history = new_history[-40:]
-        await db.chat_sessions.update_one(
-            {"session_id": session_id},
-            {"$set": {"session_id": session_id, "messages": new_history, "updated_at": now}},
-            upsert=True,
+    try:
+        reply_text = await llm.generate_reply(
+            system_prompt=build_system_prompt(contact_email),
+            history=history,
+            user_message=body.message,
         )
-        return {"reply": reply_text}
-    except HTTPException:
-        raise
-    except Exception as e:
+    except llm.LLMConfigError:
+        logger.warning("Chat requested but no LLM provider configured")
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Rishi is offline right now. Meanwhile, drop us a note at "
+                f"{contact_email} — we usually reply within a day."
+            ),
+        )
+    except llm.LLMBudgetError:
+        logger.warning("Chat unavailable: provider billing/quota")
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Chat is offline while the studio tops up its AI credits. Meanwhile, drop us a note at "
+                f"{contact_email} — we usually reply within a day."
+            ),
+        )
+    except Exception:
         logger.exception("Chat failed")
-        msg = str(e).lower()
-        if "budget" in msg:
-            raise HTTPException(
-                status_code=503,
-                detail="Chat is offline while the studio tops up its AI credits. Meanwhile, drop us a note at devexpertaug@gmail.com — we usually reply within a day.",
-            )
-        raise HTTPException(status_code=500, detail="Chatbot is resting. Please try again in a moment.")
+        raise HTTPException(
+            status_code=503,
+            detail="Rishi is resting for a moment. Please try again shortly.",
+        )
+
+    now = datetime.now(timezone.utc).isoformat()
+    new_history = history + [
+        {"role": "user", "content": body.message, "at": now},
+        {"role": "assistant", "content": reply_text, "at": now},
+    ]
+    new_history = new_history[-40:]  # cap stored history
+    await db.chat_sessions.update_one(
+        {"session_id": session_id},
+        {"$set": {"session_id": session_id, "messages": new_history, "updated_at": now}},
+        upsert=True,
+    )
+    return {"reply": reply_text}
 
 
 # ---------- Routes: settings ----------

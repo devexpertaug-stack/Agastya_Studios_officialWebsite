@@ -118,9 +118,9 @@ html { scrollbar-color: #21372a #0a1810; scroll-behavior: smooth; }
     transition: border-color .5s ease, transform .5s cubic-bezier(0.16,1,0.3,1), box-shadow .5s ease;
 }
 .card-forest:hover {
-    border-color: rgba(212,165,116,0.55);
-    box-shadow: 0 30px 80px -30px rgba(127,166,112,0.35), 0 0 0 1px rgba(212,165,116,0.1) inset;
-    transform: translateY(-4px);
+    border-color: rgba(212,165,116,0.4);
+    box-shadow: 0 24px 50px -32px rgba(0,0,0,0.65), 0 1px 0 0 rgba(240,234,214,0.04) inset;
+    transform: translateY(-3px);
 }
 
 /* Link hover */
@@ -189,17 +189,33 @@ select.field-input option { background: #0a1810; color: #f0ead6; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-/* Global cursor follower (keeps native OS cursor visible for zero lag; ring is decorative only) */
+/* Smooth custom cursor — a fast dot + a softly trailing ring.
+   The transform is driven per-frame in JS (Cursor.jsx); CSS only animates
+   size/opacity so position stays perfectly smooth. */
 .cursor-ring {
   position: fixed;
   top: 0; left: 0;
   width: 36px; height: 36px;
   border-radius: 999px;
-  border: 1px solid rgba(212, 165, 116, 0.5);
+  border: 1.5px solid rgba(212, 165, 116, 0.55);
   pointer-events: none;
   z-index: 9998;
   will-change: transform;
-  transition: width .3s cubic-bezier(0.16, 1, 0.3, 1), height .3s cubic-bezier(0.16, 1, 0.3, 1), border-color .3s ease, background .3s ease, opacity .3s ease;
+  transition: width .28s cubic-bezier(0.16, 1, 0.3, 1),
+              height .28s cubic-bezier(0.16, 1, 0.3, 1),
+              margin .28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color .3s ease, background .3s ease, opacity .3s ease;
+}
+.cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 6px; height: 6px;
+  border-radius: 999px;
+  background: var(--dawn-500);
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform;
+  transition: opacity .3s ease, transform .12s ease;
 }
 .cursor-ring-lg {
   width: 56px; height: 56px;
@@ -207,8 +223,30 @@ select.field-input option { background: #0a1810; color: #f0ead6; }
   border-color: rgba(212, 165, 116, 0.9);
   background: rgba(212, 165, 116, 0.06);
 }
+.cursor-ring-down { transform-origin: center; opacity: 0.7; }
+.cursor-ring.cursor-ring-down { border-color: rgba(212, 165, 116, 1); }
+
+/* Hide the native cursor only when the custom one is active on a fine pointer. */
+body.has-custom-cursor,
+body.has-custom-cursor a,
+body.has-custom-cursor button,
+body.has-custom-cursor [role='button'],
+body.has-custom-cursor input,
+body.has-custom-cursor textarea,
+body.has-custom-cursor select,
+body.has-custom-cursor label {
+  cursor: none;
+}
+/* When the pointer leaves the window, fade the custom cursor out. */
+body.cursor-hidden .cursor-ring,
+body.cursor-hidden .cursor-dot { opacity: 0; }
+
 @media (pointer: coarse) {
-  .cursor-ring { display: none; }
+  .cursor-ring, .cursor-dot { display: none; }
+  body.has-custom-cursor, body.has-custom-cursor * { cursor: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor-ring, .cursor-dot { transition: opacity .3s ease; }
 }
 
 /* Magnetic hover (subtle translate on hover) */

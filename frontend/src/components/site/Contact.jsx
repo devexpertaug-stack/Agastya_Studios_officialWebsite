@@ -65,7 +65,7 @@ export default function Contact() {
       className="relative bg-[#0a1810] text-[var(--bone-100)] py-28 md:py-40 overflow-hidden"
     >
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[720px] rounded-full bg-[var(--dawn-500)]/10 blur-[160px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] rounded-full bg-[var(--dawn-500)]/[0.04] blur-[130px]" />
       </div>
 
       <div className="relative max-w-6xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
