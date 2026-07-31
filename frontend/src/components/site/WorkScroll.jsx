@@ -54,14 +54,19 @@ export default function WorkScroll() {
         ref={outerRef}
         style={{ height: range > 0 ? `${range + viewportH}px` : "auto" }}
       >
-        <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden py-16">
-          <div className="max-w-7xl mx-auto w-full px-6 md:px-10 mb-10">
-            <p className="text-xs uppercase tracking-[0.32em] text-[var(--mist)] mb-4">
-              03 — Recent work
-            </p>
-            <h2 className="font-display text-5xl sm:text-6xl md:text-7xl max-w-3xl">
-              A ridge line of <span className="text-lime">results.</span>
-            </h2>
+        <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden py-10">
+          <div className="max-w-7xl mx-auto w-full px-6 md:px-10 mb-6 md:mb-8 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.32em] text-[var(--mist)] mb-3">
+                03 — Recent work
+              </p>
+              <h2 className="font-display text-4xl sm:text-5xl max-w-3xl">
+                A ridge line of <span className="text-lime">results.</span>
+              </h2>
+            </div>
+            <span className="hidden sm:inline text-xs uppercase tracking-[0.24em] text-[var(--mist)]">
+              scroll to explore →
+            </span>
           </div>
 
           <motion.div
@@ -76,7 +81,7 @@ export default function WorkScroll() {
                   data-testid={SITE.projectCard(p.id)}
                   className="group relative w-[300px] sm:w-[360px] md:w-[400px] flex-shrink-0 rounded-3xl overflow-hidden glass-card"
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden">
+                  <div className="relative h-[52vh] max-h-[460px] min-h-[320px] overflow-hidden">
                     {p.image_data_url ? (
                       <img
                         src={p.image_data_url}

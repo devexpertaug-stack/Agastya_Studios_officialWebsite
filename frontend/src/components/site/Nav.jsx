@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SITE } from "@/constants/testIds/site";
 
 export function AgastyaLogo({ size = 26 }) {
@@ -36,6 +36,7 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -43,18 +44,28 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const scrollToHash = (hash) => {
+    const el = document.getElementById(hash);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const goto = (hash) => {
     setMobileOpen(false);
+    // On a sub-page (e.g. /work/:id): route home first, then scroll.
+    // Uses react-router so it respects the GitHub Pages basename/sub-path.
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        if (hash) scrollToHash(hash);
+        else window.scrollTo({ top: 0 });
+      }, 120);
+      return;
+    }
     if (!hash) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    if (location.pathname !== "/") {
-      window.location.href = `/#${hash}`;
-      return;
-    }
-    const el = document.getElementById(hash);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToHash(hash);
   };
 
   return (
