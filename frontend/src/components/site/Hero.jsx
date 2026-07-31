@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SITE } from "@/constants/testIds/site";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, TreePine } from "lucide-react";
 
 // Hero backgrounds — misty Garhwal pines → ice-capped Nanda Devi (Uttarakhand)
 const BG_IMAGE_1 =
@@ -180,8 +180,8 @@ export default function Hero() {
           className="hero-anim hero-fade inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[rgba(240,234,214,0.2)] bg-[rgba(240,234,214,0.05)] backdrop-blur-sm text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[var(--bone-100)]/80 mb-6 sm:mb-8"
           style={{ animationDelay: "0.1s" }}
         >
-          <Sparkles size={12} className="text-[var(--dawn-500)]" />
-          Agastya Studios — Garhwal → Everywhere
+          <TreePine size={12} className="text-[var(--dawn-500)]" />
+          Agastya Studios — Garhwal, Uttarakhand
         </div>
 
         <h1 className="text-[var(--bone-100)] leading-[0.95] max-w-[95vw]">

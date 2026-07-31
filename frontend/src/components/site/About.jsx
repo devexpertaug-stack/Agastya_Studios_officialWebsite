@@ -36,8 +36,7 @@ export default function About() {
       data-testid={SITE.aboutSection}
       className="relative bg-[#0a1810] text-[var(--bone-100)] py-28 md:py-40 overflow-hidden grain"
     >
-      <div className="pointer-events-none absolute -top-40 -right-40 w-[520px] h-[520px] rounded-full bg-[var(--moss-400)]/10 blur-[140px]" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 w-[520px] h-[520px] rounded-full bg-[var(--dawn-500)]/10 blur-[140px]" />
+      <div className="pointer-events-none absolute -top-40 -right-40 w-[380px] h-[380px] rounded-full bg-[var(--moss-400)]/[0.04] blur-[120px]" />
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 items-start">
         {/* Photo */}
