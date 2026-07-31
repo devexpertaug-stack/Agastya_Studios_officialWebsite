@@ -348,3 +348,7 @@ body.cursor-hidden .cursor-dot { opacity: 0; }
     .floaty { animation: none; }
     .marquee-track { animation: none; }
 }
+
+
+/* Offset in-page nav jumps (About, Services, Work, ...) below the fixed navbar */
+section[id] { scroll-margin-top: 5.5rem; }

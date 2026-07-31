@@ -90,7 +90,7 @@ export default function FeatureShowcase() {
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <span className="font-serif-italic text-[var(--mist)]">/{current.number}</span>
-                    <h3 className="font-display text-4xl md:text-5xl mt-2 leading-[0.95]">
+                    <h3 className="font-display text-[2rem] leading-[0.95] sm:text-4xl mt-2 break-words hyphens-none">
                       {current.title}
                     </h3>
                     <p className="mt-5 text-[var(--bone-100)]/70 leading-relaxed max-w-md">
