@@ -1,0 +1,36 @@
+# Render Blueprint — one-click deploy of the Agastya Studios backend.
+# Render -> New -> Blueprint -> connect this repo. Render reads this file and
+# creates a free FastAPI web service from backend/.
+#
+# You'll be prompted to fill the secret values (sync: false) after import:
+#   MONGO_URL, ADMIN_EMAIL, ADMIN_PASSWORD, OPENAI_API_KEY
+#
+# NOTE: the free plan sleeps after ~15 min idle. See DEPLOY.md for the
+# free keep-alive pinger that keeps it effectively 24/7.
+
+services:
+  - type: web
+    name: agastya-studios-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/
+    envVars:
+      - key: DB_NAME
+        value: agastya_studios
+      - key: LLM_PROVIDER
+        value: openai
+      - key: CORS_ORIGINS
+        value: https://devexpertaug-stack.github.io
+      - key: JWT_SECRET
+        generateValue: true          # Render generates a strong random secret
+      - key: MONGO_URL
+        sync: false                   # paste your MongoDB Atlas connection string
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
