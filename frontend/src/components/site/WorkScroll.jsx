@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { SITE } from "@/constants/testIds/site";
-import { SERVICE_CATEGORIES } from "@/data/services";
+import { REAL_PROJECTS } from "@/data/projects";
 import { api } from "@/lib/api";
 
 export default function WorkScroll() {
@@ -13,18 +13,15 @@ export default function WorkScroll() {
   const [range, setRange] = useState(0);
 
   useEffect(() => {
-    api.get("/projects").then((r) => setProjects(r.data || [])).catch(() => setProjects([]));
+    api
+      .get("/projects")
+      .then((r) => setProjects(Array.isArray(r.data) && r.data.length ? r.data : []))
+      .catch(() => setProjects([]));
   }, []);
 
-  const seed = SERVICE_CATEGORIES.slice(0, 6).map((c) => ({
-    id: `seed-${c.slug}`,
-    title: c.caseStudy.title,
-    sector: c.title,
-    client_name: c.caseStudy.client,
-    summary: c.caseStudy.outcome,
-    image_data_url: c.image,
-  }));
-  const items = projects.length ? projects : seed;
+  // Show live data when the backend is connected; otherwise the real projects
+  // (static mirror) so visitors always see genuine work — never fictional filler.
+  const items = projects.length ? projects : REAL_PROJECTS;
 
   const { scrollYProgress } = useScroll({
     target: outerRef,
@@ -74,11 +71,10 @@ export default function WorkScroll() {
             className="flex gap-6 px-6 md:px-10 will-change-transform"
           >
             {items.map((p) => {
-              const isReal = !String(p.id || "").startsWith("seed-");
               const card = (
                 <article
                   data-testid={SITE.projectCard(p.id)}
-                  className="group relative w-[300px] sm:w-[360px] md:w-[420px] flex-shrink-0 rounded-3xl overflow-hidden glass-card"
+                  className="group relative w-[300px] sm:w-[360px] md:w-[400px] flex-shrink-0 rounded-3xl overflow-hidden glass-card"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden">
                     {p.image_data_url ? (
@@ -110,12 +106,10 @@ export default function WorkScroll() {
                   </div>
                 </article>
               );
-              return isReal ? (
+              return (
                 <Link key={p.id} to={`/work/${p.id}`} className="flex-shrink-0">
                   {card}
                 </Link>
-              ) : (
-                <div key={p.id} className="flex-shrink-0">{card}</div>
               );
             })}
           </motion.div>

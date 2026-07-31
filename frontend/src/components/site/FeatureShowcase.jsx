@@ -6,12 +6,18 @@ import { SITE } from "@/constants/testIds/site";
 import { useServiceCategories } from "@/hooks/useServiceCategories";
 
 // Flagship capabilities to feature in the pinned scroll experience.
-const FLAGSHIP = ["ecommerce", "voice", "conversational", "web", "design"];
+// Web Development leads — it's the studio's home turf and where everything plugs in.
+const FLAGSHIP = ["web", "ecommerce", "voice", "conversational", "design"];
 
 export default function FeatureShowcase() {
   const categories = useServiceCategories();
   const bySlug = Object.fromEntries(categories.map((c) => [c.slug, c]));
   const steps = FLAGSHIP.map((s) => bySlug[s]).filter(Boolean);
+  // Web Development first in the full list too, then the rest in their usual order.
+  const orderedCategories = [
+    ...categories.filter((c) => c.slug === "web"),
+    ...categories.filter((c) => c.slug !== "web"),
+  ];
   const outerRef = useRef(null);
   const [active, setActive] = useState(0);
 
@@ -165,7 +171,7 @@ export default function FeatureShowcase() {
           Every capability
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          {categories.map((cat) => {
+          {orderedCategories.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link

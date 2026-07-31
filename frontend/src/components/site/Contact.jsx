@@ -72,7 +72,7 @@ export default function Contact() {
         <div className="md:col-span-5">
           <Reveal>
             <p className="text-xs uppercase tracking-[0.32em] text-[var(--mist)] mb-6">
-              06 &nbsp;— &nbsp; Come sit by the fire
+              07 &nbsp;— &nbsp; Come sit by the fire
             </p>
           </Reveal>
           <Reveal delay={80}>
