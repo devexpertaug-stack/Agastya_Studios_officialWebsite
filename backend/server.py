@@ -126,97 +126,85 @@ async def seed_settings():
 
 SEED_PROJECTS = [
     {
-        "title": "Alpine Apparel — cart recovery agent",
+        "title": "KK LEE — a home for handcrafted leather",
         "sector": "E-commerce & D2C",
-        "summary": "Cart-recovery + stylist agent → +38% recovered checkout revenue in 60 days.",
-        "outcome": "+38% recovered revenue",
-        "client_name": "Alpine Apparel",
+        "summary": "A quiet, editorial storefront for a made-to-order leather footwear house — built to let the craft speak.",
+        "outcome": "Live at kklee.in",
+        "client_name": "KK LEE",
         "description": (
-            "Alpine is a Dehradun-born apparel label that had a beautiful storefront but a leaky checkout. "
-            "We built a WhatsApp cart-recovery agent that speaks in their tone, a photo-based stylist that suggests "
-            "outfits from a customer's own selfie, and a light restock notifier — all wired through a bespoke Shopify "
-            "Hydrogen storefront we rebuilt in three weeks. The three agents talk to each other: the stylist knows what "
-            "you almost bought, the recovery agent knows what the stylist suggested. Within 60 days, recovered "
-            "checkout revenue was up 38% and average order value up 14%. Nothing about the funnel screams 'automated'."
+            "KK LEE is a leather-goods house that makes footwear and accessories slowly, in small batches, one pair "
+            "at a time. They wanted a website that felt like the workshop the shoes come from — unhurried, tactile "
+            "and confident, never shouty. We designed and built an editorial storefront that leads with the craft: a "
+            "made-to-order journey, the 'Crafted for Him' and 'Crafted for Her' collections, and a short journal on "
+            "materials and making. The layout leaves plenty of room to breathe so the product photography carries the "
+            "story, and the path to buying stays simple enough that choosing a pair feels as considered as making one."
         ),
-        "image_data_url": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=85&auto=format&fit=crop",
+        "image_data_url": "https://static.wixstatic.com/media/d2d0db_20c0eb8601a743a19f529ed7b32af660~mv2.jpeg/v1/fill/w_1200,h_1600,al_c,q_85/kklee.jpeg",
     },
     {
-        "title": "Rawat Wellness — 24/7 receptionist",
-        "sector": "Voice AI",
-        "summary": "Voice receptionist + reminder bot, resulting in +22% show-up rate and 340 answered calls in week one.",
-        "outcome": "0 → 340 answered calls / week",
-        "client_name": "Rawat Wellness, Dehradun",
+        "title": "Maruti Complete Eye Care — Dehradun",
+        "sector": "Web Development",
+        "summary": "A warm, trustworthy clinic site for a Dehradun eye-care practice specialising in children's vision.",
+        "outcome": "Live at maruticompleteeyecare.com",
+        "client_name": "Dr. Swati Uniyal, Dehradun",
         "description": (
-            "A wellness clinic in Dehradun was losing appointments to unanswered calls after 6pm. "
-            "We designed a Hindi + English voice agent named Rishi that picks up 24/7, books, transfers to a human "
-            "when needed, and sends SMS + WhatsApp reminders the day before. In the first week, 340 calls were "
-            "answered that would otherwise have been missed. Show-up rate rose 22% within the first month, and the "
-            "clinic launched two new evening slots because the calendar was finally full."
+            "Maruti Complete Eye Care is a Dehradun practice led by Dr. Swati Uniyal, focused on pediatric eye care, "
+            "vision therapy and neuro-vision rehabilitation. Parents usually arrive worried, so the brief was "
+            "reassurance first: plain-language explanations of each therapy, an approachable tone, and an obvious way "
+            "to get in touch and book a visit. We designed and built a calm, mobile-first site that puts the doctor "
+            "and her services front and centre, so a first-time visitor quickly understands what's offered and feels "
+            "comfortable reaching out. A home-turf project too — the clinic is a short drive from the studio."
         ),
-        "image_data_url": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=1600&q=85&auto=format&fit=crop",
+        "image_data_url": "https://maruticompleteeyecare.com/DoctorSwati.jpeg",
     },
     {
-        "title": "Ridge & Route — trilingual live chat",
-        "sector": "Conversational & Support",
-        "summary": "3-language chat agent → 61% ticket deflection with CSAT unchanged at 4.7/5.",
-        "outcome": "61% ticket deflection",
-        "client_name": "Ridge & Route Travel",
+        "title": "Mimaansa — ethical sourcing, told honestly",
+        "sector": "Web Development",
+        "summary": "A B2B site for an India-based ethical sourcing and export partner working with global brands.",
+        "outcome": "Live at mimaansa.com",
+        "client_name": "Mimaansa",
         "description": (
-            "A Rishikesh-based travel company runs group treks across the Garhwal Himalayas. Their support inbox "
-            "was drowning in the same 20 questions in Hindi, English and Punjabi. We shipped a multilingual chat "
-            "agent trained on their itineraries, permits and safety guides — with a graceful hand-off to a human on "
-            "anything medical or booking-critical. Within eight weeks, 61% of tickets were resolved by the agent, "
-            "CSAT held at 4.7/5, and the support team started running a weekly 'best conversation' show-and-tell "
-            "instead of triaging inboxes."
+            "Mimaansa is an India-based sourcing agency and export partner for apparel, home furnishings, fabrics and "
+            "lifestyle accessories, helping overseas brands and retailers manufacture in India with confidence. The "
+            "site had to earn trust from buyers who have never met the team, so we built the whole experience around "
+            "credibility: a clear walk-through of their five-step sourcing process, the full set of services — "
+            "product sourcing, development, negotiation and pricing, order management and quality control — and the "
+            "ethics that sit underneath it. The result reads like 'your on-ground team in India': professional, "
+            "transparent, and easy to enquire through."
         ),
-        "image_data_url": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1600&q=85&auto=format&fit=crop",
+        "image_data_url": "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=1600&q=85&auto=format&fit=crop",
     },
     {
-        "title": "Deodar Cloud — pipeline agent stack",
+        "title": "Saluja Realtors — property, without the noise",
+        "sector": "Web Development",
+        "summary": "A clean brokerage site that turns property browsing into simple, direct enquiries.",
+        "outcome": "Real-estate brokerage site",
+        "client_name": "Saluja Realtors",
+        "description": (
+            "Saluja Realtors is a property brokerage that needed a website to match how they actually work — "
+            "personal, responsive and no-nonsense. We designed and built a straightforward site that presents "
+            "listings clearly, makes it effortless for a buyer or seller to enquire, and behaves well on a phone, "
+            "where most property browsing really happens. No stock-photo clutter, no dead-end forms — just a credible "
+            "online front door that lets the team spend their time on conversations instead of chasing cold leads."
+        ),
+        "image_data_url": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=85&auto=format&fit=crop",
+    },
+    {
+        "title": "Google Maps Lead Scraper — leads on tap",
         "sector": "Sales & Lead Gen",
-        "summary": "Qualification + booking + follow-up agents → 3.2× meetings per SDR, 47% shorter sales cycle.",
-        "outcome": "3.2× SDR productivity",
-        "client_name": "Deodar Cloud",
+        "summary": "An in-house Python + Selenium tool that turns any Google Maps search into a clean, deduped lead list — business name, phone, website, rating and address — exported straight to Google Sheets.",
+        "outcome": "In-house lead-generation tool",
+        "client_name": "Agastya Studios — in-house tool",
         "description": (
-            "Deodar is a SaaS company selling into mid-market ops teams. Their SDRs were spending 70% of their day "
-            "on unqualified leads. We built three agents: a qualification bot that runs a BANT-style intake, a "
-            "booking agent that owns the calendar tetris, and a nurture agent that reheats cold leads on email + "
-            "WhatsApp. The CRM stays updated automatically. SDRs now walk into meetings that are already qualified, "
-            "briefed and scheduled — and quota attainment went from 62% to 138% over one quarter."
+            "Cold outreach usually starts with the same tedious chore: hunting down businesses one Google Maps pin at "
+            "a time. So we built a scraper that does it in the background. Give it a search term and a location — "
+            "'dentists in Dehradun', 'boutiques in Jaipur' — and it walks the Maps results, pulls each listing's name, "
+            "phone, website, rating and address, removes duplicates, and drops a tidy sheet into Google Sheets ready "
+            "for outreach. Built with Python and Selenium with polite rate-limiting and resume-on-failure, it turns an "
+            "afternoon of copy-pasting into a couple of minutes, and it's the quiet engine behind a lot of the "
+            "lead-gen work the studio does for clients."
         ),
         "image_data_url": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1600&q=85&auto=format&fit=crop",
-    },
-    {
-        "title": "Meraki Retreats — a booking site people bookmark",
-        "sector": "Web Development",
-        "summary": "Custom booking site + parallax storytelling → +64% direct bookings within a season.",
-        "outcome": "+64% direct bookings",
-        "client_name": "Meraki Retreats",
-        "description": (
-            "Meraki runs a set of forest retreats in Chopta and Munsyari. They wanted a website that felt like the "
-            "place — quiet, considered, slow to load a scroll but fast to load a page. We built a bespoke Next.js "
-            "site with GPU-friendly parallax, a hand-crafted booking flow, and a small assistant that answers questions "
-            "about the trails, food and connectivity. Direct bookings rose 64% in the first quarter and the cost per "
-            "booking (previously bleeding to OTAs) dropped to a third of what it was. Best part: guests write in "
-            "saying the site felt like the trip."
-        ),
-        "image_data_url": "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=1600&q=85&auto=format&fit=crop",
-    },
-    {
-        "title": "Sanjhi — a wellness brand that feels like a forest",
-        "sector": "Graphic Design",
-        "summary": "Full identity + packaging + web → sold out first drop in 11 days.",
-        "outcome": "Sold out first drop in 11 days",
-        "client_name": "Sanjhi",
-        "description": (
-            "Sanjhi is a founder-led wellness label rooted in Ayurvedic ritual. We led strategy, identity and "
-            "packaging from scratch — including a custom wordmark set in a rare Devanagari-inspired serif, a "
-            "12-piece packaging kit and a launch microsite with subtle spring-morning motion. The first drop sold "
-            "out in 11 days and the brand now sits in six curated wellness stores. Sanjhi's founder said the "
-            "identity looked like the brand she'd been trying to describe for two years."
-        ),
-        "image_data_url": "https://images.unsplash.com/photo-1561070791-2526d30994b8?w=1600&q=85&auto=format&fit=crop",
     },
 ]
 
