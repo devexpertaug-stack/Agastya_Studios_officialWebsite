@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { SITE } from "@/constants/testIds/site";
 import { REAL_PROJECTS } from "@/data/projects";
@@ -10,7 +10,11 @@ export default function WorkScroll() {
   const [projects, setProjects] = useState([]);
   const outerRef = useRef(null);
   const trackRef = useRef(null);
+  const widthRef = useRef(typeof window !== "undefined" ? window.innerWidth : 0);
   const [range, setRange] = useState(0);
+  const [viewportH, setViewportH] = useState(
+    typeof window !== "undefined" ? window.innerHeight : 800
+  );
 
   useEffect(() => {
     api
@@ -27,7 +31,9 @@ export default function WorkScroll() {
     target: outerRef,
     offset: ["start start", "end end"],
   });
-  const x = useTransform(scrollYProgress, [0, 1], [0, -range]);
+  const xRaw = useTransform(scrollYProgress, [0, 1], [0, -range]);
+  // Spring smooths the horizontal motion so it glides instead of jittering.
+  const x = useSpring(xRaw, { stiffness: 80, damping: 22, mass: 0.4 });
 
   // Measure how far the track must travel horizontally.
   useLayoutEffect(() => {
@@ -39,14 +45,21 @@ export default function WorkScroll() {
     };
     calc();
     const t = setTimeout(calc, 300); // after images/layout settle
-    window.addEventListener("resize", calc);
+    // Only recompute on real WIDTH changes (orientation/resize). Ignoring
+    // height-only changes stops the mobile URL bar from causing scroll jitter.
+    const onResize = () => {
+      if (window.innerWidth !== widthRef.current) {
+        widthRef.current = window.innerWidth;
+        setViewportH(window.innerHeight);
+        calc();
+      }
+    };
+    window.addEventListener("resize", onResize);
     return () => {
       clearTimeout(t);
-      window.removeEventListener("resize", calc);
+      window.removeEventListener("resize", onResize);
     };
   }, [items.length]);
-
-  const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
 
   return (
     <section id="work" className="relative bg-[#0a1810] text-[var(--bone-100)]">
@@ -88,6 +101,8 @@ export default function WorkScroll() {
                         alt={p.title}
                         className="w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
                         loading="lazy"
+                        decoding="async"
+                        draggable="false"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[var(--forest-700)] to-[var(--forest-500)]" />
